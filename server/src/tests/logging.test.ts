@@ -4,8 +4,9 @@ import { totalMl } from '../lib/hydration.js';
 
 const context: LogContext = {
   activeBottle: { id: 'b1', name: 'Work Bottle', capacityMl: 1500 },
-  smallGlassMl: 200,
-  largeGlassMl: 350,
+  smallIntakeMl: 200,
+  mediumIntakeMl: 300,
+  largeIntakeMl: 350,
 };
 
 describe('bottle refill', () => {
@@ -40,30 +41,37 @@ describe('bottle refill', () => {
   });
 });
 
-describe('glass logging', () => {
-  it('logs the configured small glass size', () => {
-    const result = resolveLogAmount({ sourceType: 'small_glass' }, context);
+describe('intake logging', () => {
+  it('logs the configured small intake size', () => {
+    const result = resolveLogAmount({ sourceType: 'small_intake' }, context);
     if (!result.ok) throw new Error('expected success');
     expect(result.log.amountMl).toBe(200);
   });
 
-  it('logs the configured large glass size', () => {
-    const result = resolveLogAmount({ sourceType: 'large_glass' }, context);
+  it('logs the configured medium intake size', () => {
+    const result = resolveLogAmount({ sourceType: 'medium_intake' }, context);
+    if (!result.ok) throw new Error('expected success');
+    expect(result.log.amountMl).toBe(300);
+    expect(result.log.sourceType).toBe('medium_intake');
+  });
+
+  it('logs the configured large intake size', () => {
+    const result = resolveLogAmount({ sourceType: 'large_intake' }, context);
     if (!result.ok) throw new Error('expected success');
     expect(result.log.amountMl).toBe(350);
   });
 
-  it('keeps glass water separate from bottle progress', () => {
-    const result = resolveLogAmount({ sourceType: 'small_glass' }, context);
+  it('keeps intake water separate from bottle progress', () => {
+    const result = resolveLogAmount({ sourceType: 'small_intake' }, context);
     if (!result.ok) throw new Error('expected success');
     expect(result.log.bottleId).toBeNull();
     expect(result.log.bottleCapacityMl).toBeNull();
   });
 
-  it('follows the user reconfiguring their glass sizes', () => {
+  it('follows the user reconfiguring their intake sizes', () => {
     const result = resolveLogAmount(
-      { sourceType: 'small_glass' },
-      { ...context, smallGlassMl: 250 },
+      { sourceType: 'small_intake' },
+      { ...context, smallIntakeMl: 250 },
     );
     if (!result.ok) throw new Error('expected success');
     expect(result.log.amountMl).toBe(250);
@@ -88,9 +96,9 @@ describe('custom amounts', () => {
 describe('a day of mixed logging', () => {
   it('adds every source into one daily total', () => {
     const requests = [
-      { sourceType: 'small_glass' } as const,
+      { sourceType: 'small_intake' } as const,
       { sourceType: 'bottle' } as const,
-      { sourceType: 'small_glass' } as const,
+      { sourceType: 'small_intake' } as const,
       { sourceType: 'custom', amountMl: 125 } as const,
     ];
     const logs = requests.map((request) => {

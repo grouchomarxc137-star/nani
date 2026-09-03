@@ -1,6 +1,6 @@
 // Turning a one-tap action into a hydration log entry.
 // The whole point is that the user never types millilitres: the amount comes
-// from their active bottle or their configured glass sizes.
+// from their active bottle or their configured intake sizes.
 
 import type { SourceType } from './types.js';
 
@@ -16,14 +16,16 @@ export interface BottleLike {
 
 export interface LogContext {
   activeBottle: BottleLike | null;
-  smallGlassMl: number;
-  largeGlassMl: number;
+  smallIntakeMl: number;
+  mediumIntakeMl: number;
+  largeIntakeMl: number;
 }
 
 export type LogRequest =
   | { sourceType: 'bottle' }
-  | { sourceType: 'small_glass' }
-  | { sourceType: 'large_glass' }
+  | { sourceType: 'small_intake' }
+  | { sourceType: 'medium_intake' }
+  | { sourceType: 'large_intake' }
   | { sourceType: 'custom'; amountMl: number };
 
 export interface ResolvedLog {
@@ -60,10 +62,12 @@ export function resolveLogAmount(request: LogRequest, context: LogContext): Reso
         },
       };
     }
-    case 'small_glass':
-      return glass(context.smallGlassMl, 'small_glass', 'Small Glass');
-    case 'large_glass':
-      return glass(context.largeGlassMl, 'large_glass', 'Large Glass');
+    case 'small_intake':
+      return intake(context.smallIntakeMl, 'small_intake', 'Small intake');
+    case 'medium_intake':
+      return intake(context.mediumIntakeMl, 'medium_intake', 'Medium intake');
+    case 'large_intake':
+      return intake(context.largeIntakeMl, 'large_intake', 'Large intake');
     case 'custom': {
       if (!isSaneAmount(request.amountMl)) {
         return { ok: false, error: `Amount must be between ${MIN_LOG_ML} and ${MAX_LOG_ML} ml` };
@@ -84,12 +88,12 @@ export function resolveLogAmount(request: LogRequest, context: LogContext): Reso
   }
 }
 
-function glass(amountMl: number, sourceType: SourceType, label: string): ResolveResult {
+function intake(amountMl: number, sourceType: SourceType, label: string): ResolveResult {
   if (!isSaneAmount(amountMl)) {
     return { ok: false, error: `${label} size is out of range` };
   }
-  // Glasses never reference a bottle: water from a glass must not look like
-  // bottle progress.
+  // An intake never references a bottle: water from a glass or mug must not
+  // look like bottle progress.
   return {
     ok: true,
     log: {

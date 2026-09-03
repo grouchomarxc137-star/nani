@@ -32,6 +32,22 @@ export function isGoalReached(consumedMl: number, targetMl: number): boolean {
 }
 
 /**
+ * A general daily fluid guideline for adults, keyed by the two account handles.
+ * Roughly the "from drinks" portion of U.S. National Academies figures
+ * (~3.7 L / 2.7 L total water per day for men / women, about four fifths of it
+ * from what you actually drink). Used only to colour the History mood chart —
+ * the per-user `dailyTargetMl` still drives the home-screen goal and the bird.
+ */
+export const RECOMMENDED_INTAKE_ML: Record<string, number> = {
+  principe: 3000, // adult man
+  principessa: 2100, // adult woman
+};
+
+export function recommendedIntakeMl(userKey: string, fallbackMl: number): number {
+  return RECOMMENDED_INTAKE_ML[userKey] ?? fallbackMl;
+}
+
+/**
  * How much of the day's target a person would have drunk by now if they spread
  * it evenly across their waking hours. Deliberately linear and simple; this is
  * the single function to replace if we want a smarter curve later.

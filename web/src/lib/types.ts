@@ -1,7 +1,12 @@
 // Mirrors the DTOs the API returns. The server does the hydration maths, so
 // the frontend mostly renders what it is given.
 
-export type SourceType = 'bottle' | 'small_glass' | 'large_glass' | 'custom';
+export type SourceType =
+  | 'bottle'
+  | 'small_intake'
+  | 'medium_intake'
+  | 'large_intake'
+  | 'custom';
 
 export interface BirdDto {
   id: string;
@@ -27,13 +32,16 @@ export interface UserSummary {
   percentDisplay: number;
   expectedPercent: number;
   goalReached: boolean;
+  wakeMinute: number;
+  sleepMinute: number;
   bottleMl: number;
-  glassMl: number;
+  intakeMl: number;
   customMl: number;
   bottlesFinishedToday: number;
   coinBalance: number;
-  smallGlassMl: number;
-  largeGlassMl: number;
+  smallIntakeMl: number;
+  mediumIntakeMl: number;
+  largeIntakeMl: number;
   activeBottle: { id: string; name: string; capacityMl: number } | null;
   bird: BirdDto;
 }
@@ -98,6 +106,8 @@ export interface NotificationSettings {
 export interface HistoryResponse {
   today: string;
   dailyTargetMl: number;
+  /** Adult fluid guideline for this user (by sex); drives the mood chart. */
+  recommendedMl: number;
   days: { date: string; totalMl: number; entries: number }[];
   logs: LogEntry[];
 }

@@ -1,11 +1,17 @@
 // Shared value types. Mirrors the Prisma enum without importing the generated
 // client into pure logic modules, so the maths stays testable on its own.
-export type SourceType = 'bottle' | 'small_glass' | 'large_glass' | 'custom';
+export type SourceType =
+  | 'bottle'
+  | 'small_intake'
+  | 'medium_intake'
+  | 'large_intake'
+  | 'custom';
 
 export const SOURCE_TYPES: readonly SourceType[] = [
   'bottle',
-  'small_glass',
-  'large_glass',
+  'small_intake',
+  'medium_intake',
+  'large_intake',
   'custom',
 ];
 

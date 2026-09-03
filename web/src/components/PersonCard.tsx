@@ -1,4 +1,5 @@
 import { formatMl } from '../lib/format.js';
+import { livePace, useNow } from '../lib/pace.js';
 import type { UserSummary } from '../lib/types.js';
 
 /**
@@ -17,6 +18,9 @@ export function PersonCard({
   isMe: boolean;
   animate?: boolean;
 }) {
+  // Recompute "where you'd be on pace" from the wall clock so the marker
+  // creeps along between polls instead of freezing at the last fetch.
+  const expectedPercent = livePace(summary, useNow()).percent;
   return (
     <div className={`person${isMe ? ' is-me' : ''}`}>
       <div className="who">{who}</div>
@@ -39,7 +43,7 @@ export function PersonCard({
         {!summary.goalReached && (
           <div
             className="expected"
-            style={{ left: `${Math.min(100, summary.expectedPercent)}%` }}
+            style={{ left: `${Math.min(100, expectedPercent)}%` }}
             title="Where you would be if you were on pace"
           />
         )}

@@ -5,6 +5,7 @@ import {
   paceDelta,
   progressPercent,
   progressRatio,
+  recommendedIntakeMl,
   remainingMl,
   totalMl,
 } from '../lib/hydration.js';
@@ -101,5 +102,16 @@ describe('pace', () => {
     const evening = paceDelta(0.5, expectedProgressRatio(20 * 60, WAKE, SLEEP));
     expect(noon).toBeGreaterThan(0);
     expect(evening).toBeLessThan(-0.3);
+  });
+});
+
+describe('recommended intake', () => {
+  it('is higher for the man than the woman', () => {
+    expect(recommendedIntakeMl('principe', 2500)).toBe(3000);
+    expect(recommendedIntakeMl('principessa', 2500)).toBe(2100);
+  });
+
+  it('falls back to the given target for an unknown handle', () => {
+    expect(recommendedIntakeMl('someone-else', 2500)).toBe(2500);
   });
 });

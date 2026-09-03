@@ -65,8 +65,9 @@ export async function runReminderSweep(now = new Date()): Promise<ReminderRunEnt
       continue;
     }
 
-    const fact = await nextFact(settings?.lastFactIndex ?? 0);
-    const message = buildReminderMessage(decision.tone, fact);
+    // Hydration facts deliberately live on the home screen now, not in
+    // notifications — a reminder is just a gentle nudge.
+    const message = buildReminderMessage(decision.tone, null);
     const report = await sendToUser(user.id, {
       ...message,
       tag: 'nani-reminder',
@@ -75,27 +76,13 @@ export async function runReminderSweep(now = new Date()): Promise<ReminderRunEnt
 
     await prisma.notificationSettings.update({
       where: { userId: user.id },
-      data: {
-        lastSentAt: now,
-        lastFactIndex: (settings?.lastFactIndex ?? 0) + 1,
-      },
+      data: { lastSentAt: now },
     });
 
     entries.push({ user: user.key, decision, delivered: report.sent });
   }
 
   return entries;
-}
-
-/** Facts are curated rows, walked in order — never generated on the fly. */
-async function nextFact(index: number): Promise<{ text: string } | null> {
-  const facts = await prisma.hydrationFact.findMany({
-    where: { active: true },
-    orderBy: { sortOrder: 'asc' },
-    select: { text: true },
-  });
-  if (facts.length === 0) return null;
-  return facts[index % facts.length];
 }
 
 export async function notifyGoalReached(userId: string, coins: number): Promise<void> {

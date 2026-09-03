@@ -17,7 +17,8 @@ const MAX_TARGET_ML = 6000;
  * without changing the storage shape.
  */
 settingsRouter.patch('/me', async (req, res) => {
-  const { dailyTargetMl, timezone, smallGlassMl, largeGlassMl, name } = req.body ?? {};
+  const { dailyTargetMl, timezone, smallIntakeMl, mediumIntakeMl, largeIntakeMl, name } =
+    req.body ?? {};
   const data: Record<string, unknown> = {};
 
   if (dailyTargetMl !== undefined) {
@@ -38,13 +39,14 @@ settingsRouter.patch('/me', async (req, res) => {
   }
 
   for (const [field, value] of [
-    ['smallGlassMl', smallGlassMl],
-    ['largeGlassMl', largeGlassMl],
+    ['smallIntakeMl', smallIntakeMl],
+    ['mediumIntakeMl', mediumIntakeMl],
+    ['largeIntakeMl', largeIntakeMl],
   ] as const) {
     if (value === undefined) continue;
     const parsed = Number(value);
     if (!isSaneAmount(parsed)) {
-      res.status(400).json({ error: `Glass size must be between 1 and ${MAX_LOG_ML} ml` });
+      res.status(400).json({ error: `Intake size must be between 1 and ${MAX_LOG_ML} ml` });
       return;
     }
     data[field] = Math.round(parsed);

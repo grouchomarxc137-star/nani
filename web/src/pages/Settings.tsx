@@ -198,26 +198,39 @@ export function Settings() {
       </div>
 
       <div className="card">
-        <h2>Glass sizes</h2>
-        <div className="field-row">
+        <h2>Intake sizes</h2>
+        <p className="pace-note" style={{ marginTop: 0 }}>
+          The one-tap amounts on the home screen — a glass, a mug, a big tumbler.
+        </p>
+        <div className="btn-row three">
           <div>
-            <label htmlFor="small-glass">Small glass</label>
+            <label htmlFor="small-intake">Small intake</label>
             <input
-              id="small-glass"
+              id="small-intake"
               type="number"
               inputMode="numeric"
-              defaultValue={me.smallGlassMl}
-              onBlur={(event) => save({ smallGlassMl: Number(event.target.value) })}
+              defaultValue={me.smallIntakeMl}
+              onBlur={(event) => save({ smallIntakeMl: Number(event.target.value) })}
             />
           </div>
           <div>
-            <label htmlFor="large-glass">Large glass</label>
+            <label htmlFor="medium-intake">Medium intake</label>
             <input
-              id="large-glass"
+              id="medium-intake"
               type="number"
               inputMode="numeric"
-              defaultValue={me.largeGlassMl}
-              onBlur={(event) => save({ largeGlassMl: Number(event.target.value) })}
+              defaultValue={me.mediumIntakeMl}
+              onBlur={(event) => save({ mediumIntakeMl: Number(event.target.value) })}
+            />
+          </div>
+          <div>
+            <label htmlFor="large-intake">Large intake</label>
+            <input
+              id="large-intake"
+              type="number"
+              inputMode="numeric"
+              defaultValue={me.largeIntakeMl}
+              onBlur={(event) => save({ largeIntakeMl: Number(event.target.value) })}
             />
           </div>
         </div>

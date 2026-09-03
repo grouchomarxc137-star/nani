@@ -17,33 +17,33 @@ const BIRDS = [
     id: 'henna',
     name: 'Henna',
     emoji: '🐦',
-    description: 'The original. Yours from the start.',
+    description: 'The default. A long white bird with warm henna-coloured feathers — orange-red, like the dye. Yours from the start.',
     priceCoins: 0,
     isDefault: true,
     sortOrder: 0,
   },
   {
-    id: 'bird-2',
-    name: 'Bird 2',
-    emoji: '🐤',
-    description: 'Placeholder companion. Artwork to come.',
+    id: 'princesa',
+    name: 'Princesa',
+    emoji: '🕊️',
+    description: 'Pure white from head to tail, with a bright orange beak.',
     priceCoins: 30,
     isDefault: false,
     sortOrder: 1,
   },
   {
-    id: 'bird-3',
-    name: 'Bird 3',
-    emoji: '🦜',
+    id: 'prince',
+    name: 'Prince',
+    emoji: '🐦‍⬛',
     description: 'Placeholder companion. Artwork to come.',
     priceCoins: 60,
     isDefault: false,
     sortOrder: 2,
   },
   {
-    id: 'bird-4',
-    name: 'Bird 4',
-    emoji: '🦉',
+    id: 'paloma',
+    name: 'Paloma',
+    emoji: '🦢',
     description: 'Placeholder companion. Artwork to come.',
     priceCoins: 120,
     isDefault: false,
@@ -93,14 +93,15 @@ const PEOPLE = [
     dailyTargetMl: 2500,
     timezone: 'Europe/Rome',
     coinBalance: 40,
-    smallGlassMl: 200,
-    largeGlassMl: 350,
+    smallIntakeMl: 200,
+    mediumIntakeMl: 300,
+    largeIntakeMl: 400,
     bottles: [
       { name: 'Work Bottle', capacityMl: 1000, isActive: true },
       { name: 'Big Bottle', capacityMl: 2000, isActive: false },
     ],
     sampleLogs: [
-      { hour: 9, minute: 13, amountMl: 200, sourceType: 'small_glass' as const, label: 'Small Glass' },
+      { hour: 9, minute: 13, amountMl: 200, sourceType: 'small_intake' as const, label: 'Small intake' },
       { hour: 11, minute: 40, amountMl: 1000, sourceType: 'bottle' as const, label: 'Work Bottle' },
     ],
   },
@@ -110,16 +111,17 @@ const PEOPLE = [
     dailyTargetMl: 2000,
     timezone: 'Europe/Rome',
     coinBalance: 70,
-    smallGlassMl: 250,
-    largeGlassMl: 400,
+    smallIntakeMl: 250,
+    mediumIntakeMl: 325,
+    largeIntakeMl: 400,
     bottles: [
       { name: 'Small Bottle', capacityMl: 750, isActive: true },
       { name: 'Desk Bottle', capacityMl: 1500, isActive: false },
     ],
     sampleLogs: [
-      { hour: 8, minute: 30, amountMl: 250, sourceType: 'small_glass' as const, label: 'Small Glass' },
+      { hour: 8, minute: 30, amountMl: 250, sourceType: 'small_intake' as const, label: 'Small intake' },
       { hour: 10, minute: 5, amountMl: 750, sourceType: 'bottle' as const, label: 'Small Bottle' },
-      { hour: 14, minute: 8, amountMl: 400, sourceType: 'large_glass' as const, label: 'Large Glass' },
+      { hour: 14, minute: 8, amountMl: 400, sourceType: 'large_intake' as const, label: 'Large intake' },
     ],
   },
 ];
@@ -128,6 +130,15 @@ async function main() {
   for (const bird of BIRDS) {
     await prisma.bird.upsert({ where: { id: bird.id }, create: bird, update: bird });
   }
+
+  // Drop birds from earlier seeds that are no longer in the catalogue. Move any
+  // user still pointing at one back to the default first so the FK is happy.
+  const keepIds = BIRDS.map((bird) => bird.id);
+  await prisma.user.updateMany({
+    where: { activeBirdId: { notIn: keepIds } },
+    data: { activeBirdId: 'henna' },
+  });
+  await prisma.bird.deleteMany({ where: { id: { notIn: keepIds } } });
 
   await prisma.hydrationFact.deleteMany({});
   await prisma.hydrationFact.createMany({
@@ -145,11 +156,17 @@ async function main() {
         dailyTargetMl: person.dailyTargetMl,
         timezone: person.timezone,
         coinBalance: person.coinBalance,
-        smallGlassMl: person.smallGlassMl,
-        largeGlassMl: person.largeGlassMl,
+        smallIntakeMl: person.smallIntakeMl,
+        mediumIntakeMl: person.mediumIntakeMl,
+        largeIntakeMl: person.largeIntakeMl,
         activeBirdId: 'henna',
       },
-      update: { name: person.name },
+      update: {
+        name: person.name,
+        smallIntakeMl: person.smallIntakeMl,
+        mediumIntakeMl: person.mediumIntakeMl,
+        largeIntakeMl: person.largeIntakeMl,
+      },
     });
 
     await prisma.ownedBird.upsert({

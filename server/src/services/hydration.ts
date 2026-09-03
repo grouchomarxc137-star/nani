@@ -12,7 +12,7 @@ import {
   remainingMl,
   totalMl,
 } from '../lib/hydration.js';
-import { resolveLogAmount, type LogRequest } from '../lib/logging.js';
+import { isSaneAmount, resolveLogAmount, type LogRequest } from '../lib/logging.js';
 import { evaluateDailyReward, DAILY_GOAL_REWARD_COINS } from '../lib/rewards.js';
 import { localDateKey, localMinutes, minutesToLabel } from '../lib/time.js';
 
@@ -53,16 +53,22 @@ export interface UserSummaryDto {
   expectedPercent: number;
   goalReached: boolean;
 
+  // The awake window, in minutes from local midnight. The home screen uses it
+  // to place clock-time markers up the side of the bottle visual.
+  wakeMinute: number;
+  sleepMinute: number;
+
   // Bottle progress is reported separately from daily progress on purpose:
-  // water drunk from a glass must never look like bottle progress.
+  // water drunk from a glass or mug must never look like bottle progress.
   bottleMl: number;
-  glassMl: number;
+  intakeMl: number;
   customMl: number;
   bottlesFinishedToday: number;
 
   coinBalance: number;
-  smallGlassMl: number;
-  largeGlassMl: number;
+  smallIntakeMl: number;
+  mediumIntakeMl: number;
+  largeIntakeMl: number;
   activeBottle: { id: string; name: string; capacityMl: number } | null;
   bird: {
     id: string;
@@ -146,14 +152,19 @@ export function summarise(
     expectedPercent: Math.round(expectedProgressRatio(nowMinutes, wake, sleep) * 100),
     goalReached: isGoalReached(consumedMl, target),
 
+    wakeMinute: wake,
+    sleepMinute: sleep,
+
     bottleMl: bySource('bottle'),
-    glassMl: bySource('small_glass') + bySource('large_glass'),
+    intakeMl:
+      bySource('small_intake') + bySource('medium_intake') + bySource('large_intake'),
     customMl: bySource('custom'),
     bottlesFinishedToday: logs.filter((log) => log.sourceType === 'bottle').length,
 
     coinBalance: user.coinBalance,
-    smallGlassMl: user.smallGlassMl,
-    largeGlassMl: user.largeGlassMl,
+    smallIntakeMl: user.smallIntakeMl,
+    mediumIntakeMl: user.mediumIntakeMl,
+    largeIntakeMl: user.largeIntakeMl,
     activeBottle: activeBottle
       ? { id: activeBottle.id, name: activeBottle.name, capacityMl: activeBottle.capacityMl }
       : null,
@@ -188,8 +199,9 @@ export async function logWater(
     activeBottle: activeBottle
       ? { id: activeBottle.id, name: activeBottle.name, capacityMl: activeBottle.capacityMl }
       : null,
-    smallGlassMl: user.smallGlassMl,
-    largeGlassMl: user.largeGlassMl,
+    smallIntakeMl: user.smallIntakeMl,
+    mediumIntakeMl: user.mediumIntakeMl,
+    largeIntakeMl: user.largeIntakeMl,
   });
   if (!resolved.ok) return { ok: false, error: resolved.error };
 
@@ -235,6 +247,49 @@ export async function deleteLog(
   const user = await loadUser(userId);
   if (!user) return { ok: false, error: 'User not found' };
   return { ok: true, summary: await buildSummary(user, now) };
+}
+
+/**
+ * Corrects the amount on an existing entry — a mistyped custom amount, or a
+ * glass that was fuller or emptier than the configured size. Only the amount
+ * is editable; the source and any bottle snapshot stay as first logged, so
+ * "finished bottle" keeps meaning the bottle it referred to.
+ *
+ * Editing up across the goal still earns the daily reward (the unique
+ * constraint keeps it once-per-day); editing back down never claws it back,
+ * exactly as deletion does not.
+ */
+export async function updateLog(
+  userId: string,
+  logId: string,
+  amountMl: number,
+  now = new Date(),
+): Promise<
+  | { ok: true; summary: UserSummaryDto; log: LogEntryDto; coinsAwarded: number }
+  | { ok: false; error: string }
+> {
+  const log = await prisma.hydrationLog.findUnique({ where: { id: logId } });
+  if (!log || log.userId !== userId) return { ok: false, error: 'Entry not found' };
+
+  if (!isSaneAmount(amountMl)) {
+    return { ok: false, error: 'Enter an amount between 1 and 5000 ml' };
+  }
+
+  const updated = await prisma.hydrationLog.update({
+    where: { id: logId },
+    data: { amountMl: Math.round(amountMl) },
+  });
+
+  const coinsAwarded = await grantDailyRewardIfEarned(userId, log.localDate, now);
+  const user = await loadUser(userId);
+  if (!user) return { ok: false, error: 'User not found' };
+
+  return {
+    ok: true,
+    summary: await buildSummary(user, now),
+    log: toLogDto(updated),
+    coinsAwarded,
+  };
 }
 
 /**

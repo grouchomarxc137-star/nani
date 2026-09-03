@@ -36,14 +36,18 @@ export async function api<T>(path: string, options: RequestInit = {}): Promise<T
 
   const response = await fetch(`/api${path}`, { ...options, headers });
 
-  if (response.status === 401) {
+  const text = await response.text();
+  const data = text ? JSON.parse(text) : {};
+
+  // A 401 on a request we *sent a token with* means the session is no longer
+  // good — drop it and bounce to the login screen. A 401 with no token is just
+  // a failed credential check (e.g. a wrong PIN on login); let its message
+  // through so the caller can show it.
+  if (response.status === 401 && token) {
     setToken(null);
     window.dispatchEvent(new CustomEvent('nani:signed-out'));
     throw new ApiError('Signed out', 401);
   }
-
-  const text = await response.text();
-  const data = text ? JSON.parse(text) : {};
 
   if (!response.ok) {
     throw new ApiError(data.error ?? 'Something went wrong', response.status);

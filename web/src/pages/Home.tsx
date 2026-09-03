@@ -2,8 +2,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { del, get, post } from '../lib/api.js';
 import { enqueue, flushQueue, pendingCount, remove } from '../lib/offlineQueue.js';
 import { formatMl } from '../lib/format.js';
+import { livePace, useNow } from '../lib/pace.js';
 import type { LogResponse, SourceType, SummaryResponse } from '../lib/types.js';
 import { PersonCard } from '../components/PersonCard.js';
+import { BottleGauge } from '../components/BottleGauge.js';
+import { WaterFact } from '../components/WaterFact.js';
 import { Toast } from '../components/Toast.js';
 
 const POLL_MS = 20_000;
@@ -24,6 +27,8 @@ export function Home() {
   const [animate, setAnimate] = useState(false);
   const [customOpen, setCustomOpen] = useState(false);
   const [customMl, setCustomMl] = useState('');
+
+  const now = useNow();
 
   const undoTimer = useRef<number | null>(null);
   const flashTimer = useRef<number | null>(null);
@@ -154,6 +159,7 @@ export function Home() {
   }
 
   const { me, partner } = data;
+  const expectedPercent = livePace(me, now).percent;
 
   return (
     <>
@@ -171,6 +177,8 @@ export function Home() {
         </div>
       )}
 
+      <WaterFact />
+
       <div className="pair">
         <PersonCard summary={me} who="Me" isMe animate={animate} />
         {partner ? (
@@ -184,12 +192,17 @@ export function Home() {
       </div>
 
       <div className="card">
+        <h2>Your bottle today</h2>
+        <BottleGauge summary={me} />
+      </div>
+
+      <div className="card">
         <h2>{me.bird.name}</h2>
         <p style={{ margin: 0 }}>{me.bird.message}</p>
         <p className="pace-note">
           {me.goalReached
             ? 'Daily goal reached. Anything more is entirely up to you.'
-            : `${formatMl(me.remainingMl)} to go · on-pace for now is about ${me.expectedPercent}%`}
+            : `${formatMl(me.remainingMl)} to go · on-pace for now is about ${expectedPercent}%`}
         </p>
       </div>
 
@@ -212,30 +225,40 @@ export function Home() {
             className="btn"
             type="button"
             disabled={busy}
-            onClick={() => logWater('small_glass')}
+            onClick={() => logWater('small_intake')}
           >
             Small
-            <span className="sub">{me.smallGlassMl} ml</span>
+            <span className="sub">{me.smallIntakeMl} ml</span>
           </button>
           <button
             className="btn"
             type="button"
             disabled={busy}
-            onClick={() => logWater('large_glass')}
+            onClick={() => logWater('medium_intake')}
+          >
+            Medium
+            <span className="sub">{me.mediumIntakeMl} ml</span>
+          </button>
+          <button
+            className="btn"
+            type="button"
+            disabled={busy}
+            onClick={() => logWater('large_intake')}
           >
             Large
-            <span className="sub">{me.largeGlassMl} ml</span>
-          </button>
-          <button
-            className="btn"
-            type="button"
-            disabled={busy}
-            onClick={() => setCustomOpen((open) => !open)}
-          >
-            Custom
-            <span className="sub">ml</span>
+            <span className="sub">{me.largeIntakeMl} ml</span>
           </button>
         </div>
+
+        <button
+          className="btn ghost"
+          type="button"
+          disabled={busy}
+          style={{ marginTop: 12 }}
+          onClick={() => setCustomOpen((open) => !open)}
+        >
+          Custom amount
+        </button>
 
         {customOpen && (
           <div className="field-row" style={{ marginTop: 12 }}>
@@ -251,28 +274,6 @@ export function Home() {
             </button>
           </div>
         )}
-      </div>
-
-      <div className="card">
-        <h2>Today so far</h2>
-        <div className="row">
-          <span>From bottles</span>
-          <span className="amount">{formatMl(me.bottleMl)}</span>
-        </div>
-        <div className="row">
-          <span>From glasses</span>
-          <span className="amount">{formatMl(me.glassMl)}</span>
-        </div>
-        {me.customMl > 0 && (
-          <div className="row">
-            <span>Other</span>
-            <span className="amount">{formatMl(me.customMl)}</span>
-          </div>
-        )}
-        <div className="row">
-          <span className="meta">Bottles finished</span>
-          <span className="meta">{me.bottlesFinishedToday}</span>
-        </div>
       </div>
 
       {undo && <Toast message="Logged 💧" actionLabel="Undo" onAction={undoLast} />}

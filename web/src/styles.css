@@ -551,3 +551,396 @@ select {
   padding: 60px 0;
   color: var(--text-muted);
 }
+
+/* ---------- login: person step + PIN keypad ---------- */
+
+.login-step {
+  text-align: center;
+  font-size: 15px;
+  color: var(--text);
+  margin: 0 0 16px;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--water-strong);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0 0 0 8px;
+  text-decoration: underline;
+}
+
+.pin-dots {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin: 8px 0 18px;
+}
+
+.pin-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 2px solid var(--border);
+  background: var(--surface);
+  transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
+}
+
+.pin-dot.is-filled {
+  background: var(--water);
+  border-color: var(--water-strong);
+  transform: scale(1.08);
+}
+
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.keypad-key {
+  min-height: 64px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.keypad-key:active {
+  transform: scale(0.96);
+  background: var(--surface-alt);
+}
+
+.keypad-key:disabled {
+  opacity: 0.5;
+}
+
+.keypad-back {
+  font-size: 20px;
+  color: var(--text-muted);
+}
+
+/* ---------- home: rotating hydration fact ---------- */
+
+.fact-card .fact-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text);
+  opacity: 0;
+  transition: opacity 260ms ease;
+}
+
+.fact-card .fact-text.is-shown {
+  opacity: 1;
+}
+
+.fact-card .fact-mark {
+  margin-right: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fact-card .fact-text {
+    transition: none;
+  }
+}
+
+/* ---------- home: bottle gauge ---------- */
+
+.bottle-gauge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.bottle-gauge svg {
+  width: 100%;
+  max-width: 340px;
+  height: auto;
+  overflow: visible;
+}
+
+.bottle-cap {
+  fill: var(--water-strong);
+}
+
+.bottle-neck {
+  fill: var(--surface-alt);
+  stroke: var(--border);
+  stroke-width: 1.5;
+}
+
+.bottle-body {
+  fill: var(--surface);
+  stroke: var(--border);
+  stroke-width: 2;
+}
+
+.bottle-water-surface {
+  fill: rgba(255, 255, 255, 0.55);
+}
+
+.bottle-tick {
+  stroke: rgba(255, 255, 255, 0.5);
+  stroke-width: 1;
+}
+
+.bottle-tick.major {
+  stroke: rgba(255, 255, 255, 0.7);
+  stroke-width: 1.5;
+}
+
+.bottle-now-line {
+  stroke: var(--arancia-strong);
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+}
+
+.bottle-ml-label {
+  fill: var(--text-muted);
+  font-size: 10px;
+}
+
+.bottle-clock-tick {
+  stroke: var(--border);
+  stroke-width: 1.5;
+}
+
+.bottle-clock-label {
+  fill: var(--text-muted);
+  font-size: 9.5px;
+}
+
+.bottle-clock-label.goal {
+  fill: var(--mint-strong);
+  font-weight: 700;
+}
+
+.bottle-now-label {
+  fill: var(--arancia-strong);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.bottle-gauge-caption {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.bottle-gauge-caption strong {
+  font-size: 16px;
+  color: var(--text);
+}
+
+.bottle-gauge-sub {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+}
+
+/* ---------- history: inline entry editing ---------- */
+
+.entry-edit {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.entry-edit input {
+  width: 88px;
+  min-height: 38px;
+  padding: 6px 8px;
+}
+
+.day-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 0;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+
+.day-toggle[aria-expanded='true'] {
+  border-bottom-color: transparent;
+}
+
+.day-entries {
+  padding: 2px 0 10px 12px;
+  border-left: 2px solid var(--border);
+  margin-bottom: 8px;
+}
+
+.day-entries .row:last-child {
+  border-bottom: none;
+}
+
+/* Three intake-size inputs side by side, labels allowed to wrap. */
+.btn-row.three > div > label {
+  min-height: 30px;
+}
+
+/* ---------- history: hydration mood calendar ---------- */
+
+.mood-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.mood-head h2 {
+  margin: 0;
+  flex: 1;
+  text-align: center;
+}
+
+.mood-head .btn.small {
+  width: 40px;
+  min-width: 40px;
+  flex: 0 0 auto;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.mood-caption {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.mood-sub {
+  margin: 10px 0 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.mood-cal {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+
+.mood-dowhead {
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding-bottom: 2px;
+}
+
+.mood-slot {
+  aspect-ratio: 1;
+}
+
+.mood-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  min-height: 38px;
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 9px;
+  background: var(--surface-alt);
+  color: #fff;
+  cursor: pointer;
+}
+
+.mood-cell .mood-dom {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.mood-cell.is-future {
+  background: transparent;
+  border-style: dashed;
+  border-color: var(--border);
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.mood-cell.is-today {
+  box-shadow: 0 0 0 2px var(--water-strong);
+}
+
+/* Dry → wet, reusing the palette tokens. */
+.mood-cell[data-score='0'],
+.mood-swatch[data-score='0'] {
+  background: var(--surface-alt);
+  color: var(--text-muted);
+  border-style: dashed;
+}
+
+.mood-cell[data-score='1'],
+.mood-swatch[data-score='1'] {
+  background: var(--danger);
+}
+
+.mood-cell[data-score='2'],
+.mood-swatch[data-score='2'] {
+  background: var(--arancia);
+}
+
+.mood-cell[data-score='3'],
+.mood-swatch[data-score='3'] {
+  background: var(--gold-strong);
+}
+
+.mood-cell[data-score='4'],
+.mood-swatch[data-score='4'] {
+  background: var(--mint-strong);
+}
+
+.mood-cell[data-score='5'],
+.mood-swatch[data-score='5'] {
+  background: var(--water-strong);
+}
+
+.mood-cell.is-open {
+  outline: 2px solid var(--text);
+  outline-offset: 1px;
+}
+
+.mood-legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 12px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.mood-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.mood-detail {
+  margin-top: 14px;
+  border-top: 1px solid var(--border);
+  padding-top: 4px;
+}
+
+.mood-detail .day-toggle {
+  cursor: default;
+}

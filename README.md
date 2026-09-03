@@ -13,15 +13,21 @@ finishing your daily goal earns coins you can spend on cosmetic birds.
 - **Side-by-side home screen.** Both people's intake, goal, percentage, current
   bottle and bird, visible the moment the app opens.
 - **One-tap logging.** "Finished bottle" logs your active bottle's capacity.
-  Small Glass and Large Glass log your configured sizes. No typing millilitres.
+  Small / Medium / Large intake log your three configured sizes. No typing
+  millilitres.
 - **A time-aware bird.** Henna's mood compares your progress against where you'd
   be if you spread the day's target evenly across your waking hours. 50% at noon
   is fine; 50% at 20:00 is not.
 - **Coins.** Reaching 100% of the daily goal awards coins once per day.
   Overshooting earns nothing extra.
-- **Gentle push reminders** that stop for the day once you hit your goal, respect
-  quiet hours, and sometimes carry a short hydration fact.
-- **Undo and delete.** Accidental taps are easy to take back.
+- **Gentle push reminders** that stop for the day once you hit your goal and
+  respect quiet hours.
+- **Rotating hydration facts** on the home screen — a benefit of drinking, or
+  what suffers when you don't. Advances once per app launch, every 10 minutes
+  while open, and on returning after 10+ minutes in the background. Placeholder
+  copy for now, held in the frontend.
+- **Undo, edit and delete.** Accidental taps are easy to take back; any past
+  entry's amount can be corrected from History.
 - **Works offline.** Taps made without signal are queued and synced on reconnect.
 - **Installs on iPhone** via Add to Home Screen and receives push while closed.
 
@@ -208,9 +214,11 @@ hours, is the goal already reached, has the interval elapsed? Only if all of
 those pass does it choose a tone from the person's pace and send. Deciding is
 separate from delivering, so the rules are testable without the network.
 
-**Bottle vs daily progress.** These are kept apart deliberately. Water from a
-glass never counts as bottle progress. Bottle capacity is snapshotted onto each
-log, so renaming or resizing a bottle later leaves history untouched.
+**Bottle vs daily progress.** These are kept apart deliberately. An intake
+(a glass, a mug, a tumbler) never counts as bottle progress. Bottle capacity is
+snapshotted onto each log, so renaming or resizing a bottle later leaves history
+untouched. Editing an entry only changes its amount — the source and any bottle
+snapshot stay as first logged.
 
 ---
 
@@ -229,10 +237,11 @@ All routes are under `/api`. Everything except the first three needs an
 | `POST` | `/auth/logout` | Ends the session client-side |
 | `GET` | `/summary` | **Home screen**: both people, side by side |
 | `POST` | `/logs` | Log water: `{ sourceType, amountMl? }` |
+| `PATCH` | `/logs/:id` | Correct an entry's amount: `{ amountMl }` |
 | `DELETE` | `/logs/:id` | Remove an entry and recalculate |
 | `GET` | `/logs/today` | Today's entries |
 | `GET` | `/logs/history?days=14` | Recent days, grouped by local date |
-| `PATCH` | `/settings/me` | Target, timezone, glass sizes, name |
+| `PATCH` | `/settings/me` | Target, timezone, intake sizes, name |
 | `GET`/`POST` | `/settings/bottles` | List and create bottles |
 | `PATCH`/`DELETE` | `/settings/bottles/:id` | Edit, activate or archive |
 | `GET`/`PATCH` | `/settings/notifications` | Reminder interval and quiet hours |
@@ -244,8 +253,8 @@ All routes are under `/api`. Everything except the first three needs an
 | `POST` | `/push/test` | Send yourself a test notification |
 | `POST` | `/push/sweep` | Run the reminder decision immediately (for testing) |
 
-`sourceType` is one of `bottle`, `small_glass`, `large_glass`, `custom`.
-`amountMl` is only used for `custom`.
+`sourceType` is one of `bottle`, `small_intake`, `medium_intake`,
+`large_intake`, `custom`. `amountMl` is only used for `custom`.
 
 ---
 
@@ -274,7 +283,7 @@ npm test
 The suite covers the logic that could produce wrong totals, wrong rewards or
 unwanted notifications: daily totals and recalculation after deletion, expected
 progress by time of day, Henna's states, the reward firing exactly once and
-never paying more for overshooting, bottle and glass amounts, quiet hours,
+never paying more for overshooting, bottle and intake amounts, quiet hours,
 reminder throttling, and reminders stopping once the goal is reached.
 
 ---
@@ -283,8 +292,10 @@ reminder throttling, and reminders stopping once the goal is reached.
 
 - Placeholder art throughout: birds are emoji, the app icon is a generated
   water drop. The component structure assumes these get replaced.
-- Hydration facts in the seed are marked `placeholder — to verify`. They are
-  general and conservative, but they have not been sourced yet.
+- Hydration facts shown on the home screen live in `web/src/lib/facts.ts` as
+  placeholder copy — general and conservative, not yet sourced or cited. (The
+  seed still carries an unused `HydrationFact` table for a later API-backed
+  version.)
 - The daily target is a number the user picks. It is not a recommendation and
   the app does not present it as medical advice.
 - Partner progress refreshes by polling every 20 seconds and on app focus.
