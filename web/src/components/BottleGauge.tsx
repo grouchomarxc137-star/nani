@@ -11,7 +11,7 @@ import type { UserSummary } from '../lib/types.js';
  *  - The vertical axis runs from 0 at the base to the daily target at the neck.
  *  - Millilitre ticks sit on the left; clock times on the right mark where the
  *    water line "should" be by that hour if the day is spread evenly across
- *    the awake window (the same pace the bird judges you against).
+ *    the awake window (the same pace the bird judges you against). Triggering a re depoloy
  */
 
 const CLOCK_MAX_LABELS = 6;
