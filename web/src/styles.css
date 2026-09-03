@@ -1,29 +1,62 @@
-/* Nani MVP styling.
+/* Nani — styled as the water-side sibling of the Insieme "Il nido" family.
  *
- * Deliberately plain: large tap targets, readable type, mobile first.
- * Colours are declared once as custom properties using the same names as the
- * Insieme theme, so the final restyle is a token swap rather than a rewrite.
+ * Same hand: warm parchment ground, Baloo 2 + Nunito, thick ink borders and
+ * flat "sticker" shadows instead of blur. Nani's own departure from that
+ * shared language is colour — acqua (the water this app is actually about)
+ * and henna (the dye the default bird is named and coloured for) sit where
+ * Insieme spends gold and pink. Everything else is the family resemblance.
+ *
+ * Structural rule of thumb: a THICK ink border + flat shadow marks something
+ * focal — the pair-strip, the bottle gauge, the primary action, the login
+ * card, the mood seal. A thin clay border marks something read, not acted
+ * on. Two weights, used on purpose, is the whole hierarchy.
  */
 
 :root {
-  --bg: #fdf4e3;
-  --surface: #fff8ea;
-  --surface-alt: #fbecd3;
-  --border: #e3cfa8;
-  --text: #4a3428;
-  --text-muted: #97806f;
-  --gold: #f2b02e;
-  --gold-strong: #d99615;
-  --arancia: #e8804a;
-  --arancia-strong: #cf6531;
-  --mint-strong: #8fb87a;
-  --water: #5d9cbd;
-  --water-strong: #46809f;
-  --danger: #c05545;
+  /* ground */
+  --sand: #fbf1de;
+  --paper: #fff9ec;
+  --paper-deep: #f6e7c4;
+  --clay: #e4ce9e;
 
-  --radius: 14px;
+  /* ink */
+  --ink: #3b2a1e;
+  --ink-soft: #7a5e44;
+
+  /* Nani's own accent: the water itself. */
+  --acqua: #2e8aa3;
+  --acqua-deep: #1f6b80;
+  --acqua-wash: #e3f0ee;
+
+  /* the bird's colour, and the app's way of marking anything earned. */
+  --henna: #c1522b;
+  --henna-deep: #96401f;
+  --henna-wash: #f5e2d4;
+
+  /* coins only — shared with Insieme's own currency colour. */
+  --gold: #efad2e;
+  --gold-deep: #ce8d10;
+
+  /* pace states, dry to hydrated. */
+  --mint: #7fae68;
+  --amber: #d98a2b;
+  --dust: #a9967c;
+  --danger: #a6392c;
+
+  --radius-lg: 26px;
+  --radius-md: 16px;
+  --radius-sm: 11px;
   --gap: 12px;
   --tap: 52px;
+
+  --sticker: 0 4px 0 var(--ink);
+  --sticker-sm: 0 2px 0 var(--ink);
+  --shadow-soft: 0 2px 10px rgba(59, 42, 30, 0.08);
+
+  --font-display: 'Baloo 2', ui-rounded, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  color-scheme: light;
 }
 
 * {
@@ -34,9 +67,9 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--sand);
+  color: var(--ink);
+  font-family: var(--font-body);
   font-size: 16px;
   -webkit-text-size-adjust: 100%;
 }
@@ -53,6 +86,18 @@ button {
   touch-action: manipulation;
 }
 
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+:focus-visible {
+  outline: 2.5px solid var(--acqua-deep);
+  outline-offset: 2px;
+}
+
 .app {
   min-height: 100dvh;
   display: flex;
@@ -63,7 +108,7 @@ button {
 .main {
   flex: 1;
   padding: var(--gap);
-  padding-bottom: calc(78px + env(safe-area-inset-bottom));
+  padding-bottom: calc(84px + env(safe-area-inset-bottom));
   max-width: 640px;
   width: 100%;
   margin: 0 auto;
@@ -73,37 +118,76 @@ button {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  padding: 4px 2px 10px;
+  padding: 6px 2px 12px;
 }
 
 .header h1 {
-  font-size: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 23px;
+  font-weight: 800;
   margin: 0;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
+}
+
+/* A small wax-seal droplet ahead of the wordmark — the same medallion
+   language the bird moods use, shrunk down into a brand mark. */
+.header h1::before {
+  content: '💧';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  font-size: 13px;
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: var(--sticker-sm);
 }
 
 .header .coins {
-  font-size: 15px;
-  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--henna-deep);
+  background: var(--henna-wash);
+  border: 1.5px solid var(--henna);
+  border-radius: 999px;
+  padding: 5px 11px 5px 9px;
 }
 
 /* ---------- cards ---------- */
 
 .card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px;
+  background: var(--paper);
+  border: 1.5px solid var(--clay);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+  padding: 15px;
   margin-bottom: var(--gap);
 }
 
 .card h2 {
   margin: 0 0 10px;
-  font-size: 15px;
+  font-size: 13px;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
-  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+  font-weight: 700;
+}
+
+/* The bottle gauge is the one thing this screen is actually about — it gets
+   the focal, thick-border treatment the way the pair strip and the primary
+   action do. */
+.card.card-hero {
+  border: 2px solid var(--ink);
+  box-shadow: var(--sticker);
+  background: var(--paper);
 }
 
 /* ---------- side-by-side couple view ---------- */
@@ -116,59 +200,130 @@ button {
 }
 
 .person {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 12px 10px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius-md);
+  box-shadow: var(--sticker-sm);
+  padding: 14px 10px 12px;
   text-align: center;
 }
 
+/* Your own card carries the water colour; your partner's stays in the
+   neutral ink/paper the rest of the sticker language uses. It's a small
+   distinction that says "this one is yours" without a label. */
 .person.is-me {
-  border-color: var(--gold);
+  border-color: var(--acqua-deep);
+  box-shadow: 0 4px 0 var(--acqua-deep);
+  background: var(--acqua-wash);
 }
 
 .person .who {
-  font-size: 12px;
+  font-family: var(--font-display);
+  font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-muted);
-  margin-bottom: 6px;
-}
-
-.person .bird {
-  font-size: 40px;
-  line-height: 1.1;
-  margin: 2px 0;
+  letter-spacing: 0.09em;
+  color: var(--ink-soft);
+  margin-bottom: 8px;
+  font-weight: 700;
 }
 
 .person .bird-label {
-  font-size: 12px;
-  color: var(--text-muted);
-  min-height: 16px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  margin-top: 7px;
+  min-height: 15px;
 }
 
 .person .amount {
-  font-size: 17px;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
   margin-top: 8px;
 }
 
 .person .target {
-  font-size: 13px;
-  color: var(--text-muted);
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 12.5px;
+  color: var(--ink-soft);
 }
 
 .person .pct {
-  font-size: 24px;
-  font-weight: 700;
-  margin-top: 4px;
+  font-family: var(--font-display);
+  font-size: 25px;
+  font-weight: 800;
+  margin-top: 2px;
+  line-height: 1.1;
 }
 
 .person .bottle-line {
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-top: 6px;
+  font-size: 11.5px;
+  color: var(--ink-soft);
+  margin-top: 7px;
   min-height: 15px;
+}
+
+/* ---------- mood seal (the medallion) ----------
+   The one signature element, reused everywhere the bird's pace-state needs
+   showing: a circular sticker whose ring colour *is* the state, not a label
+   next to it. Dry-to-hydrated runs warm-to-cool the same way the History
+   calendar does, so the colour means the same thing everywhere it appears. */
+
+.seal {
+  --seal-ring: var(--clay);
+  --seal-wash: var(--paper-deep);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 58px;
+  margin: 0 auto;
+  border-radius: 999px;
+  background: var(--seal-wash);
+  border: 2.5px solid var(--seal-ring);
+  box-shadow: var(--sticker-sm);
+  font-size: 26px;
+  line-height: 1;
+}
+
+.seal[data-state='celebrating'] {
+  --seal-ring: var(--henna);
+  --seal-wash: var(--henna-wash);
+}
+
+.seal[data-state='happy'] {
+  --seal-ring: var(--acqua);
+  --seal-wash: var(--acqua-wash);
+}
+
+.seal[data-state='steady'] {
+  --seal-ring: var(--mint);
+  --seal-wash: #eef3e6;
+}
+
+.seal[data-state='thirsty'] {
+  --seal-ring: var(--amber);
+  --seal-wash: #f7ead4;
+}
+
+.seal[data-state='sleepy'] {
+  --seal-ring: var(--dust);
+  --seal-wash: var(--paper-deep);
+}
+
+.seal.seal-sm {
+  width: 44px;
+  height: 44px;
+  font-size: 20px;
+  border-width: 2px;
+}
+
+.seal.seal-lg {
+  width: 74px;
+  height: 74px;
+  font-size: 34px;
 }
 
 /* ---------- progress ---------- */
@@ -177,20 +332,22 @@ button {
   position: relative;
   height: 10px;
   border-radius: 999px;
-  background: var(--surface-alt);
+  background: var(--paper-deep);
   overflow: hidden;
-  margin-top: 8px;
+  margin-top: 9px;
 }
 
 .bar > .fill {
   height: 100%;
-  background: var(--water);
+  background: var(--acqua);
   border-radius: 999px;
   transition: width 260ms ease;
 }
 
+/* Goal complete switches the fill from "still drinking" water-blue to the
+   same henna used for celebration everywhere else. */
 .bar.is-complete > .fill {
-  background: var(--mint-strong);
+  background: var(--henna);
 }
 
 /* Where you would be if you were exactly on pace for this time of day. */
@@ -199,14 +356,15 @@ button {
   top: -2px;
   bottom: -2px;
   width: 2px;
-  background: var(--text-muted);
-  opacity: 0.55;
+  background: var(--ink);
+  opacity: 0.35;
 }
 
 .pace-note {
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-top: 6px;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  margin-top: 7px;
+  line-height: 1.45;
 }
 
 /* ---------- buttons ---------- */
@@ -219,16 +377,19 @@ button {
   width: 100%;
   min-height: var(--tap);
   padding: 12px 14px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: var(--surface-alt);
-  font-size: 16px;
-  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--clay);
+  background: var(--paper-deep);
+  font-family: var(--font-body);
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--ink);
   cursor: pointer;
+  transition: transform 120ms ease;
 }
 
 .btn:active {
-  transform: scale(0.98);
+  transform: scale(0.97);
 }
 
 .btn:disabled {
@@ -236,15 +397,29 @@ button {
 }
 
 .btn.primary {
-  background: var(--water);
-  border-color: var(--water-strong);
-  color: #fff;
-  min-height: 62px;
-  font-size: 18px;
+  background: var(--acqua);
+  border: 2px solid var(--ink);
+  box-shadow: var(--sticker);
+  color: var(--paper);
+  min-height: 64px;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.btn.primary:active {
+  transform: translateY(2px) scale(0.99);
+  box-shadow: var(--sticker-sm);
 }
 
 .btn.ghost {
   background: transparent;
+  border-color: transparent;
+  color: var(--ink-soft);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: var(--clay);
+  text-underline-offset: 3px;
 }
 
 .btn.danger {
@@ -255,7 +430,7 @@ button {
 
 .btn.small {
   min-height: 40px;
-  font-size: 14px;
+  font-size: 13.5px;
   padding: 8px 12px;
   width: auto;
 }
@@ -271,16 +446,17 @@ button {
 }
 
 .btn .sub {
-  font-size: 12px;
-  font-weight: 500;
-  opacity: 0.85;
+  font-family: var(--font-body);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
 }
 
 /* Quick-log buttons stack their amount under the name, so the label never
    wraps mid-word on a narrow phone. */
 .btn-row .btn {
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .btn-stack {
@@ -293,8 +469,9 @@ button {
 
 label {
   display: block;
-  font-size: 13px;
-  color: var(--text-muted);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
   margin-bottom: 4px;
 }
 
@@ -303,11 +480,20 @@ select {
   width: 100%;
   min-height: 46px;
   padding: 10px 12px;
+  font-family: var(--font-body);
   font-size: 16px; /* 16px stops iOS zooming on focus */
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--clay);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--acqua-deep);
+  box-shadow: 0 0 0 3px var(--acqua-wash);
 }
 
 .field {
@@ -328,7 +514,7 @@ select {
   justify-content: space-between;
   gap: 10px;
   padding: 10px 0;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--clay);
 }
 
 .row:last-child {
@@ -336,18 +522,20 @@ select {
 }
 
 .row .meta {
-  font-size: 13px;
-  color: var(--text-muted);
-}
-
-.row .amount {
+  font-size: 12.5px;
+  color: var(--ink-soft);
   font-weight: 600;
 }
 
+.row .amount {
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
 .empty {
-  color: var(--text-muted);
+  color: var(--ink-soft);
   font-size: 14px;
-  padding: 12px 0;
+  padding: 14px 0;
   text-align: center;
 }
 
@@ -360,34 +548,56 @@ select {
 }
 
 .bird-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 12px;
+  background: var(--paper);
+  border: 1.5px solid var(--clay);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+  padding: 14px 12px;
   text-align: center;
 }
 
 .bird-card.is-active {
-  border-color: var(--gold);
+  border: 2px solid var(--henna);
+  box-shadow: var(--sticker-sm);
+  background: var(--henna-wash);
 }
 
+/* Store birds are about ownership, not pace, so the frame is a plain paper
+   seal rather than the state-coloured one used on the home screen. */
 .bird-card .face {
-  font-size: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto;
+  font-size: 28px;
+  background: var(--paper-deep);
+  border: 2px solid var(--clay);
+  border-radius: 999px;
+}
+
+.bird-card.is-active .face {
+  border-color: var(--henna);
+  background: var(--paper);
 }
 
 .bird-card .name {
-  font-weight: 600;
-  margin-top: 4px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  margin-top: 8px;
 }
 
 .bird-card .desc {
   font-size: 12px;
-  color: var(--text-muted);
-  min-height: 30px;
+  line-height: 1.4;
+  color: var(--ink-soft);
+  min-height: 32px;
   margin: 4px 0 8px;
 }
 
-/* ---------- nav ---------- */
+/* ---------- bottom nav ---------- */
 
 .nav {
   position: fixed;
@@ -396,33 +606,38 @@ select {
   right: 0;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  padding-bottom: env(safe-area-inset-bottom);
+  gap: 4px;
+  background: var(--paper);
+  border-top: 2px solid var(--ink);
+  padding: 6px 6px env(safe-area-inset-bottom);
   z-index: 10;
 }
 
 .nav button {
-  border: none;
+  border: 1.5px solid transparent;
   background: none;
-  padding: 10px 4px 12px;
-  font-size: 11px;
-  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  padding: 8px 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--ink-soft);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 3px;
   cursor: pointer;
-  min-height: 58px;
+  min-height: 56px;
+  transition: background 120ms ease, border-color 120ms ease;
 }
 
 .nav button .icon {
-  font-size: 20px;
+  font-size: 19px;
 }
 
 .nav button[aria-current='page'] {
-  color: var(--text);
-  font-weight: 600;
+  color: var(--ink);
+  background: var(--acqua-wash);
+  border-color: var(--acqua-deep);
 }
 
 /* ---------- toast / undo ---------- */
@@ -431,11 +646,11 @@ select {
   position: fixed;
   left: 12px;
   right: 12px;
-  bottom: calc(76px + env(safe-area-inset-bottom));
-  background: var(--text);
-  color: var(--surface);
-  border-radius: var(--radius);
-  padding: 12px 14px;
+  bottom: calc(80px + env(safe-area-inset-bottom));
+  background: var(--ink);
+  color: var(--paper);
+  border-radius: var(--radius-md);
+  padding: 13px 15px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -443,15 +658,17 @@ select {
   z-index: 20;
   max-width: 616px;
   margin: 0 auto;
+  font-weight: 600;
+  box-shadow: 0 6px 18px rgba(59, 42, 30, 0.25);
 }
 
 .toast button {
   background: none;
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  border: 1.5px solid rgba(255, 255, 255, 0.5);
   color: inherit;
-  border-radius: 8px;
-  padding: 7px 12px;
-  font-weight: 600;
+  border-radius: 999px;
+  padding: 7px 13px;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -463,17 +680,33 @@ select {
    not a finished animation. */
 @keyframes nani-pop {
   0% { transform: scale(1); }
-  35% { transform: scale(1.22) rotate(-4deg); }
+  35% { transform: scale(1.16) rotate(-4deg); }
   100% { transform: scale(1); }
 }
 
-.bird.just-logged {
+.seal.just-logged {
   animation: nani-pop 480ms ease;
 }
 
+/* The seal breathes gently while a goal is still open — the same ambient
+   idle motion Insieme's nest scene uses — and simply stops once complete. */
+@keyframes nani-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.035); }
+}
+
+.seal:not([data-state='celebrating']) {
+  animation: nani-breathe 4.5s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .bird.just-logged { animation: none; }
-  .bar > .fill { transition: none; }
+  .seal.just-logged,
+  .seal {
+    animation: none;
+  }
+  .bar > .fill {
+    transition: none;
+  }
 }
 
 /* ---------- login ---------- */
@@ -481,20 +714,40 @@ select {
 .login {
   max-width: 380px;
   margin: 0 auto;
-  padding: 40px 18px;
+  padding: 48px 18px;
 }
 
 .login h1 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   text-align: center;
-  font-size: 30px;
-  margin: 0 0 4px;
+  font-size: 34px;
+  font-weight: 800;
+  margin: 0 0 6px;
+}
+
+.login h1::before {
+  content: '💧';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  font-size: 19px;
+  background: var(--paper);
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  box-shadow: var(--sticker-sm);
 }
 
 .login .tagline {
   text-align: center;
-  color: var(--text-muted);
-  margin-bottom: 26px;
-  font-size: 14px;
+  color: var(--ink-soft);
+  font-weight: 600;
+  margin-bottom: 30px;
+  font-size: 14.5px;
 }
 
 .who-picker {
@@ -505,66 +758,80 @@ select {
 }
 
 .who-picker button {
-  min-height: 76px;
-  border-radius: var(--radius);
-  border: 2px solid var(--border);
-  background: var(--surface);
-  font-size: 15px;
-  font-weight: 600;
+  min-height: 78px;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--clay);
+  background: var(--paper);
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
   cursor: pointer;
+  transition: transform 120ms ease;
+}
+
+.who-picker button:active {
+  transform: scale(0.97);
 }
 
 .who-picker button[aria-pressed='true'] {
-  border-color: var(--gold);
-  background: var(--surface-alt);
+  border-color: var(--acqua-deep);
+  background: var(--acqua-wash);
+  box-shadow: var(--sticker-sm);
 }
 
 .error {
   color: var(--danger);
   font-size: 14px;
+  font-weight: 600;
   margin: 10px 0 0;
   text-align: center;
 }
 
 .notice {
-  background: var(--surface-alt);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 10px 12px;
+  background: var(--paper-deep);
+  border: 1.5px solid var(--clay);
+  border-radius: var(--radius-sm);
+  padding: 11px 13px;
   font-size: 13px;
-  color: var(--text-muted);
+  font-weight: 600;
+  color: var(--ink-soft);
   margin-bottom: var(--gap);
 }
 
 .pill {
   display: inline-block;
+  font-family: var(--font-display);
   font-size: 11px;
-  padding: 2px 8px;
+  font-weight: 700;
+  padding: 3px 10px;
   border-radius: 999px;
-  background: var(--surface-alt);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
+  background: var(--henna-wash);
+  border: 1.5px solid var(--henna);
+  color: var(--henna-deep);
 }
 
 .spinner {
   text-align: center;
   padding: 60px 0;
-  color: var(--text-muted);
+  color: var(--ink-soft);
+  font-weight: 600;
 }
 
 /* ---------- login: person step + PIN keypad ---------- */
 
 .login-step {
   text-align: center;
-  font-size: 15px;
-  color: var(--text);
-  margin: 0 0 16px;
+  font-size: 15.5px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 18px;
 }
 
 .link-btn {
   background: none;
   border: none;
-  color: var(--water-strong);
+  color: var(--acqua-deep);
+  font-weight: 700;
   font-size: 13px;
   cursor: pointer;
   padding: 0 0 0 8px;
@@ -603,29 +870,29 @@ select {
 }
 
 .pin-hidden-input:focus + .pin-dots .pin-dot {
-  border-color: var(--water-strong);
+  border-color: var(--acqua-deep);
 }
 
 .pin-dots {
   display: flex;
   justify-content: center;
   gap: 14px;
-  margin: 8px 0 18px;
+  margin: 8px 0 20px;
 }
 
 .pin-dot {
-  width: 14px;
-  height: 14px;
+  width: 15px;
+  height: 15px;
   border-radius: 999px;
-  border: 2px solid var(--border);
-  background: var(--surface);
+  border: 2px solid var(--clay);
+  background: var(--paper);
   transition: background 140ms ease, border-color 140ms ease, transform 140ms ease;
 }
 
 .pin-dot.is-filled {
-  background: var(--water);
-  border-color: var(--water-strong);
-  transform: scale(1.08);
+  background: var(--acqua);
+  border-color: var(--acqua-deep);
+  transform: scale(1.1);
 }
 
 .keypad {
@@ -638,18 +905,20 @@ select {
 
 .keypad-key {
   min-height: 64px;
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--text);
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--clay);
+  background: var(--paper);
+  font-family: var(--font-display);
+  font-size: 23px;
+  font-weight: 700;
+  color: var(--ink);
   cursor: pointer;
+  transition: transform 100ms ease, background 100ms ease;
 }
 
 .keypad-key:active {
-  transform: scale(0.96);
-  background: var(--surface-alt);
+  transform: scale(0.95);
+  background: var(--paper-deep);
 }
 
 .keypad-key:disabled {
@@ -657,17 +926,18 @@ select {
 }
 
 .keypad-back {
-  font-size: 20px;
-  color: var(--text-muted);
+  font-size: 19px;
+  color: var(--ink-soft);
 }
 
 /* ---------- home: rotating hydration fact ---------- */
 
 .fact-card .fact-text {
   margin: 0;
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--text);
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.55;
+  color: var(--ink);
   opacity: 0;
   transition: opacity 260ms ease;
 }
@@ -702,18 +972,18 @@ select {
 }
 
 .bottle-cap {
-  fill: var(--water-strong);
+  fill: var(--henna-deep);
 }
 
 .bottle-neck {
-  fill: var(--surface-alt);
-  stroke: var(--border);
+  fill: var(--paper-deep);
+  stroke: var(--clay);
   stroke-width: 1.5;
 }
 
 .bottle-body {
-  fill: var(--surface);
-  stroke: var(--border);
+  fill: var(--paper);
+  stroke: var(--ink);
   stroke-width: 2;
 }
 
@@ -727,57 +997,65 @@ select {
 }
 
 .bottle-tick.major {
-  stroke: rgba(255, 255, 255, 0.7);
+  stroke: rgba(255, 255, 255, 0.75);
   stroke-width: 1.5;
 }
 
 .bottle-now-line {
-  stroke: var(--arancia-strong);
+  stroke: var(--henna);
   stroke-width: 2;
   stroke-dasharray: 4 3;
 }
 
 .bottle-ml-label {
-  fill: var(--text-muted);
+  fill: var(--ink-soft);
+  font-family: var(--font-body);
+  font-weight: 700;
   font-size: 10px;
 }
 
 .bottle-clock-tick {
-  stroke: var(--border);
+  stroke: var(--clay);
   stroke-width: 1.5;
 }
 
 .bottle-clock-label {
-  fill: var(--text-muted);
+  fill: var(--ink-soft);
+  font-family: var(--font-body);
+  font-weight: 600;
   font-size: 9.5px;
 }
 
 .bottle-clock-label.goal {
-  fill: var(--mint-strong);
-  font-weight: 700;
+  fill: var(--mint);
+  font-weight: 800;
 }
 
 .bottle-now-label {
-  fill: var(--arancia-strong);
+  fill: var(--henna-deep);
+  font-family: var(--font-body);
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .bottle-gauge-caption {
-  margin-top: 10px;
+  margin-top: 12px;
   text-align: center;
   font-size: 13px;
-  color: var(--text-muted);
+  font-weight: 600;
+  color: var(--ink-soft);
 }
 
 .bottle-gauge-caption strong {
-  font-size: 16px;
-  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
 }
 
 .bottle-gauge-sub {
   display: block;
-  margin-top: 2px;
+  margin-top: 3px;
   font-size: 12px;
 }
 
@@ -803,7 +1081,7 @@ select {
   width: 100%;
   padding: 10px 0;
   border: none;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--clay);
   background: none;
   text-align: left;
   cursor: pointer;
@@ -816,7 +1094,7 @@ select {
 
 .day-entries {
   padding: 2px 0 10px 12px;
-  border-left: 2px solid var(--border);
+  border-left: 2px solid var(--clay);
   margin-bottom: 8px;
 }
 
@@ -856,14 +1134,15 @@ select {
 .mood-caption {
   margin: 0 0 12px;
   font-size: 13px;
-  color: var(--text-muted);
+  font-weight: 600;
+  color: var(--ink-soft);
 }
 
 .mood-sub {
   margin: 10px 0 0;
   font-size: 11px;
-  line-height: 1.4;
-  color: var(--text-muted);
+  line-height: 1.45;
+  color: var(--ink-soft);
 }
 
 .mood-cal {
@@ -875,9 +1154,9 @@ select {
 .mood-dowhead {
   text-align: center;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--ink-soft);
   padding-bottom: 2px;
 }
 
@@ -892,35 +1171,37 @@ select {
   aspect-ratio: 1;
   min-height: 38px;
   padding: 0;
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(59, 42, 30, 0.08);
   border-radius: 9px;
-  background: var(--surface-alt);
+  background: var(--paper-deep);
   color: #fff;
   cursor: pointer;
 }
 
 .mood-cell .mood-dom {
-  font-size: 13px;
+  font-family: var(--font-display);
+  font-size: 12.5px;
   font-weight: 700;
 }
 
 .mood-cell.is-future {
   background: transparent;
   border-style: dashed;
-  border-color: var(--border);
-  color: var(--text-muted);
+  border-color: var(--clay);
+  color: var(--ink-soft);
   cursor: default;
 }
 
 .mood-cell.is-today {
-  box-shadow: 0 0 0 2px var(--water-strong);
+  box-shadow: 0 0 0 2px var(--acqua-deep);
 }
 
-/* Dry → wet, reusing the palette tokens. */
+/* Dry to hydrated: the same warm-to-cool run the mood seal uses, so a colour
+   means the same thing on the calendar as it does on the bird. */
 .mood-cell[data-score='0'],
 .mood-swatch[data-score='0'] {
-  background: var(--surface-alt);
-  color: var(--text-muted);
+  background: var(--paper-deep);
+  color: var(--ink-soft);
   border-style: dashed;
 }
 
@@ -931,26 +1212,26 @@ select {
 
 .mood-cell[data-score='2'],
 .mood-swatch[data-score='2'] {
-  background: var(--arancia);
+  background: var(--henna);
 }
 
 .mood-cell[data-score='3'],
 .mood-swatch[data-score='3'] {
-  background: var(--gold-strong);
+  background: var(--gold);
 }
 
 .mood-cell[data-score='4'],
 .mood-swatch[data-score='4'] {
-  background: var(--mint-strong);
+  background: var(--mint);
 }
 
 .mood-cell[data-score='5'],
 .mood-swatch[data-score='5'] {
-  background: var(--water-strong);
+  background: var(--acqua-deep);
 }
 
 .mood-cell.is-open {
-  outline: 2px solid var(--text);
+  outline: 2px solid var(--ink);
   outline-offset: 1px;
 }
 
@@ -960,19 +1241,20 @@ select {
   gap: 4px;
   margin-top: 12px;
   font-size: 11px;
-  color: var(--text-muted);
+  font-weight: 600;
+  color: var(--ink-soft);
 }
 
 .mood-swatch {
   width: 16px;
   height: 16px;
   border-radius: 4px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(59, 42, 30, 0.08);
 }
 
 .mood-detail {
   margin-top: 14px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--clay);
   padding-top: 4px;
 }
 

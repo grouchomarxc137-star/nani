@@ -191,14 +191,24 @@ export function Home() {
         )}
       </div>
 
-      <div className="card">
+      <div className="card card-hero">
         <h2>Your bottle today</h2>
         <BottleGauge summary={me} />
       </div>
 
       <div className="card">
-        <h2>{me.bird.name}</h2>
-        <p style={{ margin: 0 }}>{me.bird.message}</p>
+        <h2>Your bird</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div className="seal seal-sm" data-state={me.bird.state} aria-hidden="true">
+            {me.bird.face}
+          </div>
+          <div style={{ flex: 1 }}>
+            <p style={{ margin: 0, fontWeight: 700 }}>
+              {me.bird.name} · {me.bird.label}
+            </p>
+            <p style={{ margin: '2px 0 0' }}>{me.bird.message}</p>
+          </div>
+        </div>
         <p className="pace-note">
           {me.goalReached
             ? 'Daily goal reached. Anything more is entirely up to you.'

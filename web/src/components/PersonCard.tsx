@@ -25,7 +25,11 @@ export function PersonCard({
     <div className={`person${isMe ? ' is-me' : ''}`}>
       <div className="who">{who}</div>
 
-      <div className={`bird${animate ? ' just-logged' : ''}`} aria-hidden="true">
+      <div
+        className={`seal${animate ? ' just-logged' : ''}`}
+        data-state={summary.bird.state}
+        aria-hidden="true"
+      >
         {summary.bird.emoji}
       </div>
       <div className="bird-label">

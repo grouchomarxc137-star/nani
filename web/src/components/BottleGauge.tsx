@@ -111,8 +111,8 @@ export function BottleGauge({ summary }: { summary: UserSummary }) {
       >
         <defs>
           <linearGradient id="nani-water" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#7fd8e8" />
-            <stop offset="100%" stopColor="#3f9fc4" />
+            <stop offset="0%" stopColor="#6cc4d6" />
+            <stop offset="100%" stopColor="#1f6b80" />
           </linearGradient>
           <clipPath id="nani-bottle-inner">
             <rect

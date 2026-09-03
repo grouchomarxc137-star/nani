@@ -97,7 +97,7 @@ export function Login() {
   return (
     <div className="login">
       <h1>Nani</h1>
-      <p className="tagline">A shared hydration companion 💧</p>
+      <p className="tagline">A shared hydration companion</p>
 
       {!selectedPerson ? (
         <>
