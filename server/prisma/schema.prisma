@@ -1,0 +1,160 @@
+// Nani - hydration companion for two people.
+// Design notes:
+//  - Daily totals are derived from HydrationLog rows, never stored twice.
+//  - Each log carries `localDate`, the calendar day in the user's own timezone at
+//    the moment of logging. This keeps day boundaries correct when the two users
+//    live in different countries, without recomputing timezones on every query.
+//  - Bottle capacity is snapshotted onto the log so editing a bottle later never
+//    rewrites history.
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "esm"
+  runtime      = "nodejs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum SourceType {
+  bottle
+  small_glass
+  large_glass
+  custom
+}
+
+model User {
+  id            String   @id @default(cuid())
+  key           String   @unique // "principe" | "principessa" — stable login handle
+  name          String
+  dailyTargetMl Int      @default(2500)
+  timezone      String   @default("Europe/Rome")
+  coinBalance   Int      @default(0)
+  activeBirdId  String?
+  smallGlassMl  Int      @default(200)
+  largeGlassMl  Int      @default(350)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  activeBird           Bird?                 @relation("ActiveBird", fields: [activeBirdId], references: [id])
+  bottles              Bottle[]
+  logs                 HydrationLog[]
+  pushSubscriptions    PushSubscription[]
+  notificationSettings NotificationSettings?
+  dailyRewards         DailyReward[]
+  ownedBirds           OwnedBird[]
+}
+
+model Bottle {
+  id         String   @id @default(cuid())
+  userId     String
+  name       String
+  capacityMl Int
+  isActive   Boolean  @default(false)
+  archived   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  user User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs HydrationLog[]
+
+  @@index([userId])
+}
+
+model HydrationLog {
+  id               String     @id @default(cuid())
+  userId           String
+  amountMl         Int
+  sourceType       SourceType
+  bottleId         String?
+  bottleCapacityMl Int? // snapshot, so later bottle edits do not rewrite history
+  label            String? // e.g. "Work Bottle" at time of logging
+  loggedAt         DateTime   @default(now())
+  localDate        String // YYYY-MM-DD in the user's timezone
+  createdAt        DateTime   @default(now())
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bottle Bottle? @relation(fields: [bottleId], references: [id], onDelete: SetNull)
+
+  @@index([userId, localDate])
+  @@index([userId, loggedAt])
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model NotificationSettings {
+  userId String @id
+
+  enabled         Boolean @default(true)
+  intervalMinutes Int     @default(120)
+  // Awake window, in minutes from local midnight. Quiet hours are everything
+  // outside it. The same window drives expected-hydration-progress by time.
+  wakeMinute      Int     @default(420) // 07:00
+  sleepMinute     Int     @default(1320) // 22:00
+
+  lastSentAt    DateTime?
+  lastFactIndex Int       @default(0)
+  updatedAt     DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// One row per user per local day. The unique constraint is what actually
+// guarantees the daily goal reward can never be granted twice.
+model DailyReward {
+  id           String   @id @default(cuid())
+  userId       String
+  date         String // YYYY-MM-DD in the user's timezone
+  rewardAmount Int
+  awardedAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+model Bird {
+  id          String  @id // slug, e.g. "henna"
+  name        String
+  emoji       String
+  description String
+  priceCoins  Int     @default(0)
+  isDefault   Boolean @default(false)
+  sortOrder   Int     @default(0)
+
+  ownedBy    OwnedBird[]
+  activeFor  User[]      @relation("ActiveBird")
+}
+
+model OwnedBird {
+  id         String   @id @default(cuid())
+  userId     String
+  birdId     String
+  acquiredAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bird Bird @relation(fields: [birdId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, birdId])
+}
+
+model HydrationFact {
+  id              String  @id @default(cuid())
+  text            String
+  sourceReference String
+  category        String
+  active          Boolean @default(true)
+  sortOrder       Int     @default(0)
+}

@@ -1,0 +1,3 @@
+# Railway build. Node 22 matches the engines field in package.json.
+[phases.setup]
+nixPkgs = ["nodejs_22"]
