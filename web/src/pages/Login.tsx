@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { get } from '../lib/api.js';
 import { useAuth } from '../lib/auth.js';
 import { Keypad } from '../components/Keypad.js';
@@ -19,6 +19,7 @@ export function Login() {
   const [pin, setPin] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     get<{ users: Person[] }>('/auth/users')
@@ -56,6 +57,40 @@ export function Login() {
     setError(null);
     setPin((current) => current.slice(0, -1));
   }
+
+  // The real input is a visually-hidden field kept focused: on a computer a
+  // hardware keyboard types straight into it, and on a phone tapping the dots
+  // brings up the numeric keyboard. The on-screen keypad stays for tapping.
+  function handleInput(event: ChangeEvent<HTMLInputElement>) {
+    if (busy) return;
+    const digits = event.target.value.replace(/\D/g, '').slice(0, PIN_LENGTH);
+    setError(null);
+    setPin(digits);
+    if (digits.length === PIN_LENGTH) void submit(digits);
+  }
+
+  // Fallback for a hardware keyboard when the hidden input is not focused
+  // (e.g. right after tapping an on-screen key).
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if (!selected || busy) return;
+      if (document.activeElement === inputRef.current) return;
+      if (/^\d$/.test(event.key)) {
+        event.preventDefault();
+        addDigit(event.key);
+      } else if (event.key === 'Backspace') {
+        event.preventDefault();
+        backspace();
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [selected, busy]);
+
+  // Keep focus on the hidden input while the PIN step is showing.
+  useEffect(() => {
+    if (selected && !busy) inputRef.current?.focus();
+  }, [selected, busy]);
 
   const selectedPerson = people.find((person) => person.key === selected) ?? null;
 
@@ -101,14 +136,33 @@ export function Login() {
             </button>
           </p>
 
-          <div className="pin-dots" aria-label={`${pin.length} of ${PIN_LENGTH} digits entered`}>
-            {Array.from({ length: PIN_LENGTH }).map((_, index) => (
-              <span
-                key={index}
-                className={`pin-dot${index < pin.length ? ' is-filled' : ''}`}
-              />
-            ))}
-          </div>
+          <label className="pin-entry" onClick={() => inputRef.current?.focus()}>
+            <input
+              ref={inputRef}
+              className="pin-hidden-input"
+              type="text"
+              inputMode="numeric"
+              autoComplete="one-time-code"
+              pattern="\d*"
+              maxLength={PIN_LENGTH}
+              value={pin}
+              onChange={handleInput}
+              disabled={busy}
+              autoFocus
+              aria-label={`PIN, ${PIN_LENGTH} digits`}
+            />
+            <span
+              className="pin-dots"
+              aria-hidden="true"
+            >
+              {Array.from({ length: PIN_LENGTH }).map((_, index) => (
+                <span
+                  key={index}
+                  className={`pin-dot${index < pin.length ? ' is-filled' : ''}`}
+                />
+              ))}
+            </span>
+          </label>
 
           {error && <p className="error">{error}</p>}
 

@@ -571,6 +571,41 @@ select {
   text-decoration: underline;
 }
 
+.pin-entry {
+  display: block;
+  position: relative;
+  width: fit-content;
+  margin: 0 auto;
+  cursor: text;
+}
+
+/* Focusable but invisible. Not display:none, which cannot be focused, so the
+   hardware keyboard on a computer and the numeric keyboard on a phone both
+   reach it. 16px font size stops iOS Safari zooming the page on focus. */
+.pin-hidden-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 16px;
+  color: transparent;
+  background: transparent;
+  caret-color: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.pin-hidden-input:focus {
+  outline: none;
+}
+
+.pin-hidden-input:focus + .pin-dots .pin-dot {
+  border-color: var(--water-strong);
+}
+
 .pin-dots {
   display: flex;
   justify-content: center;
