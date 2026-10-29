@@ -10,4 +10,4 @@ RUN npm ci --include=dev
 COPY . .
 RUN npm run build
 ENV NODE_ENV=production
-CMD ["npm", "run", "start:prod"]
+CMD ["sh", "scripts/start-production.sh"]

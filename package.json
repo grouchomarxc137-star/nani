@@ -24,7 +24,7 @@
     "seed": "npm run seed --workspace=server",
     "vapid": "node scripts/generate-vapid.mjs",
     "postinstall": "npm run prisma:generate",
-    "start:prod": "npm run prisma:deploy --workspace=server && node server/dist/index.js",
+    "start:prod": "sh scripts/start-production.sh",
     "db:reset": "npm run prisma:reset --workspace=server"
   }
 }
