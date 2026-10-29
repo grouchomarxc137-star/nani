@@ -117,12 +117,7 @@ export function buildReminderMessage(
 
 const GOAL_TITLES: Record<'reached', string> = { reached: 'Daily hydration complete 💧' };
 
-export function buildGoalReachedMessage(coins: number): ReminderMessage {
-  return {
-    title: GOAL_TITLES.reached,
-    body: `Henna is happy. +${coins} coins ♡`,
-  };
-}
+
 
 /** Bird states that a reminder may reference. Kept for future copy variants. */
 export const REMINDER_BIRD_STATES: readonly BirdState[] = ['thirsty', 'sleepy'];

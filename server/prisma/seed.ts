@@ -4,52 +4,14 @@
  * Safe to re-run — everything is upserted.
  */
 import 'dotenv/config';
-import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import { PrismaClient } from '../src/generated/prisma/client.js';
 import { localDateKey } from '../src/lib/time.js';
 
 const prisma = new PrismaClient({
-  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
+  adapter: new PrismaBetterSqlite3({ url: process.env.DATABASE_URL! }),
 });
 
-const BIRDS = [
-  {
-    id: 'henna',
-    name: 'Henna',
-    emoji: '🐦',
-    description: 'The default. A long white bird with warm henna-coloured feathers — orange-red, like the dye. Yours from the start.',
-    priceCoins: 0,
-    isDefault: true,
-    sortOrder: 0,
-  },
-  {
-    id: 'princesa',
-    name: 'Princesa',
-    emoji: '🕊️',
-    description: 'Pure white from head to tail, with a bright orange beak.',
-    priceCoins: 30,
-    isDefault: false,
-    sortOrder: 1,
-  },
-  {
-    id: 'prince',
-    name: 'Prince',
-    emoji: '🐦‍⬛',
-    description: 'Placeholder companion. Artwork to come.',
-    priceCoins: 60,
-    isDefault: false,
-    sortOrder: 2,
-  },
-  {
-    id: 'paloma',
-    name: 'Paloma',
-    emoji: '🦢',
-    description: 'Placeholder companion. Artwork to come.',
-    priceCoins: 120,
-    isDefault: false,
-    sortOrder: 3,
-  },
-];
 
 // Placeholder library. Deliberately conservative, general wording — these are
 // stand-ins to be replaced with properly researched and cited facts later.
@@ -92,7 +54,6 @@ const PEOPLE = [
     name: 'Principe',
     dailyTargetMl: 2500,
     timezone: 'Europe/Rome',
-    coinBalance: 40,
     smallIntakeMl: 200,
     mediumIntakeMl: 300,
     largeIntakeMl: 400,
@@ -110,7 +71,6 @@ const PEOPLE = [
     name: 'Principessa',
     dailyTargetMl: 2000,
     timezone: 'Europe/Rome',
-    coinBalance: 70,
     smallIntakeMl: 250,
     mediumIntakeMl: 325,
     largeIntakeMl: 400,
@@ -127,19 +87,6 @@ const PEOPLE = [
 ];
 
 async function main() {
-  for (const bird of BIRDS) {
-    await prisma.bird.upsert({ where: { id: bird.id }, create: bird, update: bird });
-  }
-
-  // Drop birds from earlier seeds that are no longer in the catalogue. Move any
-  // user still pointing at one back to the default first so the FK is happy.
-  const keepIds = BIRDS.map((bird) => bird.id);
-  await prisma.user.updateMany({
-    where: { activeBirdId: { notIn: keepIds } },
-    data: { activeBirdId: 'henna' },
-  });
-  await prisma.bird.deleteMany({ where: { id: { notIn: keepIds } } });
-
   await prisma.hydrationFact.deleteMany({});
   await prisma.hydrationFact.createMany({
     data: FACTS.map((fact, index) => ({ ...fact, sortOrder: index })),
@@ -155,11 +102,9 @@ async function main() {
         name: person.name,
         dailyTargetMl: person.dailyTargetMl,
         timezone: person.timezone,
-        coinBalance: person.coinBalance,
         smallIntakeMl: person.smallIntakeMl,
         mediumIntakeMl: person.mediumIntakeMl,
         largeIntakeMl: person.largeIntakeMl,
-        activeBirdId: 'henna',
       },
       update: {
         name: person.name,
@@ -169,11 +114,6 @@ async function main() {
       },
     });
 
-    await prisma.ownedBird.upsert({
-      where: { userId_birdId: { userId: user.id, birdId: 'henna' } },
-      create: { userId: user.id, birdId: 'henna' },
-      update: {},
-    });
 
     await prisma.notificationSettings.upsert({
       where: { userId: user.id },

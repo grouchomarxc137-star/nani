@@ -38,7 +38,6 @@ export interface UserSummary {
   intakeMl: number;
   customMl: number;
   bottlesFinishedToday: number;
-  coinBalance: number;
   smallIntakeMl: number;
   mediumIntakeMl: number;
   largeIntakeMl: number;
@@ -65,7 +64,6 @@ export interface LogEntry {
 export interface LogResponse {
   summary: UserSummary;
   logId: string;
-  coinsAwarded: number;
   clientId: string | null;
 }
 
@@ -74,24 +72,6 @@ export interface Bottle {
   name: string;
   capacityMl: number;
   isActive: boolean;
-}
-
-export interface StoreBird {
-  id: string;
-  name: string;
-  emoji: string;
-  description: string;
-  priceCoins: number;
-  isDefault: boolean;
-  owned: boolean;
-  active: boolean;
-  affordable: boolean;
-}
-
-export interface StoreResponse {
-  coinBalance: number;
-  activeBirdId: string | null;
-  birds: StoreBird[];
 }
 
 export interface NotificationSettings {

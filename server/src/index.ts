@@ -6,7 +6,6 @@ import { env } from './env.js';
 import { authRouter } from './routes/auth.js';
 import { hydrationRouter } from './routes/hydration.js';
 import { settingsRouter } from './routes/settings.js';
-import { storeRouter } from './routes/store.js';
 import { pushRouter } from './routes/push.js';
 import { startScheduler } from './scheduler.js';
 import { disconnectPrisma, prisma } from './prisma.js';
@@ -31,7 +30,6 @@ app.get('/api/health', async (_req, res) => {
 app.use('/api/auth', authRouter);
 app.use('/api', hydrationRouter);
 app.use('/api/settings', settingsRouter);
-app.use('/api/store', storeRouter);
 app.use('/api/push', pushRouter);
 
 // Unknown API routes answer in JSON rather than falling through to Express's

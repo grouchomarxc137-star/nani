@@ -14,7 +14,6 @@ import {
   todaysLogs,
   updateLog,
 } from '../services/hydration.js';
-import { notifyGoalReached } from '../services/reminders.js';
 
 export const hydrationRouter = Router();
 
@@ -64,12 +63,6 @@ hydrationRouter.post('/logs', requireAuth, async (req, res) => {
     return;
   }
 
-  if (outcome.result.coinsAwarded > 0) {
-    // Fire and forget: a push failure must never fail the log itself.
-    notifyGoalReached(req.userId!, outcome.result.coinsAwarded).catch((error) =>
-      console.error('[push] goal notification failed', error),
-    );
-  }
 
   res.status(201).json({ ...outcome.result, clientId: clientId ?? null });
 });
@@ -87,7 +80,7 @@ hydrationRouter.patch('/logs/:id', requireAuth, async (req, res) => {
     res.status(outcome.error === 'Entry not found' ? 404 : 400).json({ error: outcome.error });
     return;
   }
-  res.json({ summary: outcome.summary, log: outcome.log, coinsAwarded: outcome.coinsAwarded });
+  res.json({ summary: outcome.summary, log: outcome.log });
 });
 
 hydrationRouter.delete('/logs/:id', requireAuth, async (req, res) => {

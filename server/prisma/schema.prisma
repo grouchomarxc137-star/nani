@@ -11,11 +11,12 @@ generator client {
   provider     = "prisma-client"
   output       = "../src/generated/prisma"
   moduleFormat = "esm"
+  importFileExtension = "js"
   runtime      = "nodejs"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
 }
 
 enum SourceType {
@@ -32,8 +33,6 @@ model User {
   name          String
   dailyTargetMl Int      @default(2500)
   timezone      String   @default("Europe/Rome")
-  coinBalance   Int      @default(0)
-  activeBirdId  String?
   // Configurable one-tap "intake" amounts (a glass, a mug, a large tumbler).
   smallIntakeMl  Int     @default(200)
   mediumIntakeMl Int     @default(300)
@@ -41,13 +40,10 @@ model User {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  activeBird           Bird?                 @relation("ActiveBird", fields: [activeBirdId], references: [id])
   bottles              Bottle[]
   logs                 HydrationLog[]
   pushSubscriptions    PushSubscription[]
   notificationSettings NotificationSettings?
-  dailyRewards         DailyReward[]
-  ownedBirds           OwnedBird[]
 }
 
 model Bottle {
@@ -112,45 +108,6 @@ model NotificationSettings {
   updatedAt     DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-// One row per user per local day. The unique constraint is what actually
-// guarantees the daily goal reward can never be granted twice.
-model DailyReward {
-  id           String   @id @default(cuid())
-  userId       String
-  date         String // YYYY-MM-DD in the user's timezone
-  rewardAmount Int
-  awardedAt    DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, date])
-}
-
-model Bird {
-  id          String  @id // slug, e.g. "henna"
-  name        String
-  emoji       String
-  description String
-  priceCoins  Int     @default(0)
-  isDefault   Boolean @default(false)
-  sortOrder   Int     @default(0)
-
-  ownedBy    OwnedBird[]
-  activeFor  User[]      @relation("ActiveBird")
-}
-
-model OwnedBird {
-  id         String   @id @default(cuid())
-  userId     String
-  birdId     String
-  acquiredAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  bird Bird @relation(fields: [birdId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, birdId])
 }
 
 model HydrationFact {

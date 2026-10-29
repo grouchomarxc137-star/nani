@@ -5,7 +5,6 @@ import { prisma } from '../prisma.js';
 import { evaluateBird } from '../lib/bird.js';
 import { totalMl } from '../lib/hydration.js';
 import {
-  buildGoalReachedMessage,
   buildReminderMessage,
   evaluateReminder,
   type ReminderDecision,
@@ -83,9 +82,4 @@ export async function runReminderSweep(now = new Date()): Promise<ReminderRunEnt
   }
 
   return entries;
-}
-
-export async function notifyGoalReached(userId: string, coins: number): Promise<void> {
-  const message = buildGoalReachedMessage(coins);
-  await sendToUser(userId, { ...message, tag: 'nani-goal', url: '/' });
 }

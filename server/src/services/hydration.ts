@@ -14,7 +14,6 @@ import {
   totalMl,
 } from '../lib/hydration.js';
 import { isSaneAmount, resolveLogAmount, type LogRequest } from '../lib/logging.js';
-import { evaluateDailyReward, DAILY_GOAL_REWARD_COINS } from '../lib/rewards.js';
 import { localDateKey, localMinutes, minutesToLabel } from '../lib/time.js';
 
 const DEFAULT_WAKE_MINUTE = 420;
@@ -22,7 +21,6 @@ const DEFAULT_SLEEP_MINUTE = 1320;
 
 const userInclude = {
   notificationSettings: true,
-  activeBird: true,
   bottles: { where: { archived: false }, orderBy: { createdAt: 'asc' } },
 } satisfies Prisma.UserInclude;
 
@@ -66,7 +64,6 @@ export interface UserSummaryDto {
   customMl: number;
   bottlesFinishedToday: number;
 
-  coinBalance: number;
   smallIntakeMl: number;
   mediumIntakeMl: number;
   largeIntakeMl: number;
@@ -162,7 +159,6 @@ export function summarise(
     customMl: bySource('custom'),
     bottlesFinishedToday: logs.filter((log) => log.sourceType === 'bottle').length,
 
-    coinBalance: user.coinBalance,
     smallIntakeMl: user.smallIntakeMl,
     mediumIntakeMl: user.mediumIntakeMl,
     largeIntakeMl: user.largeIntakeMl,
@@ -170,9 +166,9 @@ export function summarise(
       ? { id: activeBottle.id, name: activeBottle.name, capacityMl: activeBottle.capacityMl }
       : null,
     bird: {
-      id: user.activeBird?.id ?? 'henna',
-      name: user.activeBird?.name ?? 'Henna',
-      emoji: user.activeBird?.emoji ?? '🐦',
+      id: 'henna',
+      name: 'Henna',
+      emoji: '🐦',
       state: mood.state,
       face: mood.face,
       label: mood.label,
@@ -184,7 +180,6 @@ export function summarise(
 export interface LogResult {
   summary: UserSummaryDto;
   logId: string;
-  coinsAwarded: number;
 }
 
 export async function logWater(
@@ -220,7 +215,6 @@ export async function logWater(
     },
   });
 
-  const coinsAwarded = await grantDailyRewardIfEarned(user.id, localDate, now);
   const refreshed = (await loadUser(userId)) ?? user;
 
   return {
@@ -228,7 +222,6 @@ export async function logWater(
     result: {
       summary: await buildSummary(refreshed, now),
       logId: created.id,
-      coinsAwarded,
     },
   };
 }
@@ -243,8 +236,6 @@ export async function deleteLog(
 
   await prisma.hydrationLog.delete({ where: { id: logId } });
 
-  // Coins already earned today are deliberately kept: the goal genuinely was
-  // reached at the time, and taking coins back would feel punitive.
   const user = await loadUser(userId);
   if (!user) return { ok: false, error: 'User not found' };
   return { ok: true, summary: await buildSummary(user, now) };
@@ -255,10 +246,6 @@ export async function deleteLog(
  * glass that was fuller or emptier than the configured size. Only the amount
  * is editable; the source and any bottle snapshot stay as first logged, so
  * "finished bottle" keeps meaning the bottle it referred to.
- *
- * Editing up across the goal still earns the daily reward (the unique
- * constraint keeps it once-per-day); editing back down never claws it back,
- * exactly as deletion does not.
  */
 export async function updateLog(
   userId: string,
@@ -266,7 +253,7 @@ export async function updateLog(
   amountMl: number,
   now = new Date(),
 ): Promise<
-  | { ok: true; summary: UserSummaryDto; log: LogEntryDto; coinsAwarded: number }
+  | { ok: true; summary: UserSummaryDto; log: LogEntryDto }
   | { ok: false; error: string }
 > {
   const log = await prisma.hydrationLog.findUnique({ where: { id: logId } });
@@ -281,7 +268,6 @@ export async function updateLog(
     data: { amountMl: Math.round(amountMl) },
   });
 
-  const coinsAwarded = await grantDailyRewardIfEarned(userId, log.localDate, now);
   const user = await loadUser(userId);
   if (!user) return { ok: false, error: 'User not found' };
 
@@ -289,66 +275,7 @@ export async function updateLog(
     ok: true,
     summary: await buildSummary(user, now),
     log: toLogDto(updated),
-    coinsAwarded,
   };
-}
-
-/**
- * Awards the daily goal reward at most once per user per local day.
- * The unique constraint on (userId, date) is the real guarantee; the check
- * below just avoids a pointless write.
- */
-export async function grantDailyRewardIfEarned(
-  userId: string,
-  localDate: string,
-  now = new Date(),
-): Promise<number> {
-  const user = await loadUser(userId);
-  if (!user) return 0;
-
-  const logs = await prisma.hydrationLog.findMany({
-    where: { userId, localDate },
-    select: { amountMl: true },
-  });
-
-  const existing = await prisma.dailyReward.findUnique({
-    where: { userId_date: { userId, date: localDate } },
-  });
-
-  const decision = evaluateDailyReward({
-    consumedMl: totalMl(logs),
-    targetMl: user.dailyTargetMl,
-    alreadyAwardedToday: Boolean(existing),
-    rewardAmount: DAILY_GOAL_REWARD_COINS,
-  });
-
-  if (!decision.award) return 0;
-
-  try {
-    await prisma.$transaction([
-      prisma.dailyReward.create({
-        data: { userId, date: localDate, rewardAmount: decision.amount, awardedAt: now },
-      }),
-      prisma.user.update({
-        where: { id: userId },
-        data: { coinBalance: { increment: decision.amount } },
-      }),
-    ]);
-    return decision.amount;
-  } catch (error) {
-    // A concurrent request won the race and already created the row.
-    if (isUniqueViolation(error)) return 0;
-    throw error;
-  }
-}
-
-function isUniqueViolation(error: unknown): boolean {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'code' in error &&
-    (error as { code?: string }).code === 'P2002'
-  );
 }
 
 export function toLogDto(log: {

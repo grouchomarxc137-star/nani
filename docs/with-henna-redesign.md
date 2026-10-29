@@ -8,17 +8,19 @@ Principessa's display copy is personalized for Amira; account keys and stored pr
 
 PIN entry uses a real masked password input with `inputMode="numeric"`, digit filtering and automatic submission after six digits. There is no in-app keypad. Real phone keyboard appearance remains OS-controlled and needs physical-device review.
 
-## Commit scope
+## Deployment baseline
 
-This branch contains the approved interface and companion-copy changes. It preserves the repository's committed database provider, migration history, reward accounting and deployment configuration. Separate uncommitted local SQLite and Store-removal infrastructure changes were deliberately excluded. No production environment variables or data were modified.
+Railway runs this app through CLI uploads rather than GitHub auto-deployments. The existing live service already used SQLite on its `/data` volume, while the older GitHub baseline still described PostgreSQL and the retired Store.
 
-The dormant legacy Store implementation is retained in the repository; the approved three-tab interface does not expose it. No tables or stored records are removed by this branch.
+Before publishing the approved UI, the live Dockerfile, deployment configuration, package manifests/lockfile, schema, and both applied migration checksums were verified against the local deployment baseline. All matched. The branch now records that already-deployed SQLite baseline so future builds reproduce the live app. This does not introduce a new production migration, reset, seed, variable change or database-provider switch.
+
+The approved three-tab app retains Home, History and Settings. The Store-removal migration in this repository had already been applied to the live database before the redesign deployment.
 
 ## Verification
 
 - The locally reviewed app passed its tests, TypeScript checks and frontend/API production build.
 - Additional tests cover personal greetings, recipient isolation, goal reminder suppression and offline persistence/replay.
-- The exact staged commit passed a separate clean install, all 78 tests across 8 files, both TypeScript checks, and the frontend/API production build before pushing.
+- The initial UI-only commit passed 78 tests against the older committed stack. The exact final Railway release, using the existing live SQLite baseline, passed a clean install, all 72 current tests, both TypeScript checks, and the frontend/API production build.
 - Actual mobile screenshots are in `design-proposals/implementation/`: Home, History, Settings and PIN entry, captured in Chrome phone emulation at 393 × 852. A small-phone Home screenshot is included.
 - Physical Safari/Android keyboard behavior and live push permissions/delivery remain on-device review items.
 
