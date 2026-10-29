@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { del, get, post } from '../lib/api.js';
-import { enqueue, flushQueue, pendingCount, remove } from '../lib/offlineQueue.js';
+import { clearQueue, enqueue, flushQueue, pendingCount } from '../lib/offlineQueue.js';
 import { formatMl } from '../lib/format.js';
 import { livePace, useNow } from '../lib/pace.js';
 import type { LogResponse, SourceType, SummaryResponse } from '../lib/types.js';
@@ -8,6 +8,9 @@ import { PersonCard } from '../components/PersonCard.js';
 import { BottleGauge } from '../components/BottleGauge.js';
 import { WaterFact } from '../components/WaterFact.js';
 import { Toast } from '../components/Toast.js';
+import { BrandHeader } from '../components/BrandHeader.js';
+import { Henna } from '../components/Henna.js';
+import { displayName, greeting, loggedMessage } from '../lib/companion.js';
 
 const POLL_MS = 20_000;
 const UNDO_MS = 7_000;
@@ -29,6 +32,10 @@ export function Home() {
   const [customMl, setCustomMl] = useState('');
 
   const now = useNow();
+
+  const logging = useRef(false);
+  const customInput = useRef<HTMLInputElement>(null);
+  const customTrigger = useRef<HTMLButtonElement>(null);
 
   const undoTimer = useRef<number | null>(null);
   const flashTimer = useRef<number | null>(null);
@@ -92,6 +99,8 @@ export function Home() {
   }
 
   async function logWater(sourceType: SourceType, amountMl?: number) {
+    if (logging.current) return false;
+    logging.current = true;
     setBusy(true);
     setError(null);
     try {
@@ -103,22 +112,24 @@ export function Home() {
       if (undoTimer.current) window.clearTimeout(undoTimer.current);
       undoTimer.current = window.setTimeout(() => setUndo(null), UNDO_MS);
 
-      if (result.coinsAwarded > 0) {
-        showFlash(`Goal complete 💧 +${result.coinsAwarded} coins`);
-      }
       void refresh();
+      return true;
     } catch (caught) {
       // Offline or the server is unreachable: keep the tap and replay later.
       if (!navigator.onLine || (caught as { status?: number }).status === undefined) {
-        const queued = enqueue({ sourceType, amountMl });
-        setPending(pendingCount());
-        showFlash('Saved offline — will sync when you are back');
-        setUndo(null);
-        void queued;
+        try {
+          enqueue({ sourceType, amountMl });
+          setPending(pendingCount());
+          showFlash('Saved on your phone. Will sync when you’re back online.');
+          setUndo(null);
+          return true;
+        } catch { setError('Could not save on this phone. Keep this amount and try again.'); }
       } else {
         setError((caught as Error).message);
       }
+      return false;
     } finally {
+      logging.current = false;
       setBusy(false);
     }
   }
@@ -130,7 +141,7 @@ export function Home() {
     try {
       const result = await del<{ summary: SummaryResponse['me'] }>(`/logs/${target.logId}`);
       setData((current) => (current ? { ...current, me: result.summary } : current));
-      showFlash('Removed');
+      showFlash('That entry is removed.');
     } catch (caught) {
       setError((caught as Error).message);
     }
@@ -138,35 +149,39 @@ export function Home() {
 
   async function submitCustom() {
     const amount = Number(customMl);
-    if (!Number.isFinite(amount) || amount <= 0) {
-      setError('Enter a number of millilitres.');
+    if (!Number.isFinite(amount) || amount < 1 || amount > 5000) {
+      setError('Enter an amount from 1 to 5000 ml.');
       return;
     }
-    setCustomOpen(false);
-    setCustomMl('');
-    await logWater('custom', amount);
+    if (await logWater('custom', amount)) {
+      setCustomOpen(false);
+      setCustomMl('');
+      customTrigger.current?.focus();
+    }
   }
 
   function clearOfflineQueue() {
-    for (const item of JSON.parse(localStorage.getItem('nani.pendingLogs') ?? '[]')) {
-      remove(item.clientId);
-    }
-    setPending(pendingCount());
+    try { clearQueue(); setPending(pendingCount()); }
+    catch { setError('Could not discard these entries. Please try again.'); }
   }
 
+  useEffect(() => { if (customOpen) customInput.current?.focus(); }, [customOpen]);
+
   if (!data) {
-    return <div className="spinner">{error ?? 'Loading…'}</div>;
+    return <div className="loading-state"><Henna /><p role={error ? 'alert' : 'status'}>{error ?? 'Getting your water day ready…'}</p>{error && <button type="button" className="btn" onClick={() => void refresh()}>Try again</button>}</div>;
   }
 
   const { me, partner } = data;
   const expectedPercent = livePace(me, now).percent;
+  const hello = greeting(me, me.timezone, now);
 
   return (
     <>
-      <header className="header">
-        <h1>Nani</h1>
-        <span className="coins">🪙 {me.coinBalance}</span>
-      </header>
+      <BrandHeader person={me} />
+      <section className="home-greeting">
+        <div><h1>{hello === 'Buongiorno Amira💛' ? <>Buongiorno<br /><span className="keep-together">Amira💛</span></> : hello}</h1><p>{new Date(now).toLocaleDateString('en-GB', { timeZone: me.timezone, weekday: 'long', day: 'numeric', month: 'long' })}</p></div>
+        <Henna celebrate={animate || me.goalReached} />
+      </section>
 
       {pending > 0 && (
         <div className="notice">
@@ -177,10 +192,8 @@ export function Home() {
         </div>
       )}
 
-      <WaterFact />
-
       <div className="pair">
-        <PersonCard summary={me} who="Me" isMe animate={animate} />
+        <PersonCard summary={me} who={`Me · ${displayName(me)}`} isMe animate={animate} />
         {partner ? (
           <PersonCard summary={partner} who={partner.name} isMe={false} />
         ) : (
@@ -191,33 +204,8 @@ export function Home() {
         )}
       </div>
 
-      <div className="card card-hero">
-        <h2>Your bottle today</h2>
-        <BottleGauge summary={me} />
-      </div>
-
-      <div className="card">
-        <h2>Your bird</h2>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div className="seal seal-sm" data-state={me.bird.state} aria-hidden="true">
-            {me.bird.face}
-          </div>
-          <div style={{ flex: 1 }}>
-            <p style={{ margin: 0, fontWeight: 700 }}>
-              {me.bird.name} · {me.bird.label}
-            </p>
-            <p style={{ margin: '2px 0 0' }}>{me.bird.message}</p>
-          </div>
-        </div>
-        <p className="pace-note">
-          {me.goalReached
-            ? 'Daily goal reached. Anything more is entirely up to you.'
-            : `${formatMl(me.remainingMl)} to go · on-pace for now is about ${expectedPercent}%`}
-        </p>
-      </div>
-
-      <div className="card">
-        <h2>Log water</h2>
+      <section className="card log-card" aria-busy={busy}>
+        <h2>A sip for you</h2>
 
         <button
           className="btn primary"
@@ -226,7 +214,7 @@ export function Home() {
           onClick={() => logWater('bottle')}
         >
           {me.activeBottle
-            ? `Finished bottle · ${formatMl(me.activeBottle.capacityMl)}`
+            ? `+  Finished bottle · ${formatMl(me.activeBottle.capacityMl)}`
             : 'Choose a bottle in Settings'}
         </button>
 
@@ -264,30 +252,52 @@ export function Home() {
           className="btn ghost"
           type="button"
           disabled={busy}
-          style={{ marginTop: 12 }}
+          ref={customTrigger}
+          aria-expanded={customOpen}
+          aria-controls="custom-water"
           onClick={() => setCustomOpen((open) => !open)}
         >
-          Custom amount
+          + Custom amount
         </button>
 
         {customOpen && (
-          <div className="field-row" style={{ marginTop: 12 }}>
-            <input
+          <form id="custom-water" className="custom-form" onSubmit={(event) => { event.preventDefault(); void submitCustom(); }}>
+            <label htmlFor="custom-ml">Amount (ml)</label>
+            <div className="field-row"><input
+              ref={customInput}
+              id="custom-ml"
+              min="1"
+              max="5000"
+              step="1"
               type="number"
               inputMode="numeric"
               placeholder="e.g. 125"
               value={customMl}
               onChange={(event) => setCustomMl(event.target.value)}
             />
-            <button className="btn" type="button" onClick={submitCustom} disabled={busy}>
+            <button className="btn" type="submit" disabled={busy}>
               Add
-            </button>
-          </div>
+            </button></div>
+          </form>
         )}
-      </div>
+      </section>
 
-      {undo && <Toast message="Logged 💧" actionLabel="Undo" onAction={undoLast} />}
-      {!undo && flash && <Toast message={flash} />}
+      <section className="card daily-card">
+        <h2>Your water today</h2>
+        <div className="daily-summary"><BottleGauge summary={me} compact /><div>
+          <p className="daily-remaining">{me.goalReached ? loggedMessage(me.key, true) : `${formatMl(me.remainingMl)} to go`}</p>
+          <p className="pace-note">{me.percent}% of your {formatMl(me.dailyTargetMl)} daily goal</p>
+        </div></div>
+        <details className="pace-details"><summary>Daily pace &amp; bottle details</summary><BottleGauge summary={me} />
+          <p className="pace-note">{formatMl(me.bottleMl)} from bottles · {formatMl(me.intakeMl + me.customMl)} other water</p>
+          <p className="pace-note">{me.bottlesFinishedToday} finished {me.bottlesFinishedToday === 1 ? 'bottle' : 'bottles'} today. {me.activeBottle ? `${me.activeBottle.name} · ${formatMl(me.activeBottle.capacityMl)}` : 'No bottle selected.'}</p>
+        </details>
+      </section>
+      <section className="card companion-card"><Henna celebrate={me.goalReached} /><div><h2>A note from Henna</h2><p>{me.bird.message}</p><p className="pace-note">{me.goalReached ? 'No more reminders today.' : `On-pace by now: ${expectedPercent}%`}</p></div></section>
+      <WaterFact />
+
+      {undo && !error && <Toast message={loggedMessage(me.key, me.goalReached)} actionLabel="Undo" onAction={undoLast} />}
+      {!undo && !error && flash && <Toast message={flash} />}
       {error && <Toast message={error} isError />}
     </>
   );

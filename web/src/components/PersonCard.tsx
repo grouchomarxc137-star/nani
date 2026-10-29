@@ -2,62 +2,13 @@ import { formatMl } from '../lib/format.js';
 import { livePace, useNow } from '../lib/pace.js';
 import type { UserSummary } from '../lib/types.js';
 
-/**
- * One side of the side-by-side couple view. Shows intake, goal, percentage,
- * the current bottle and the bird — the five things the spec asks to be
- * visible the moment the app opens.
- */
-export function PersonCard({
-  summary,
-  who,
-  isMe,
-  animate,
-}: {
-  summary: UserSummary;
-  who: string;
-  isMe: boolean;
-  animate?: boolean;
-}) {
-  // Recompute "where you'd be on pace" from the wall clock so the marker
-  // creeps along between polls instead of freezing at the last fetch.
-  const expectedPercent = livePace(summary, useNow()).percent;
-  return (
-    <div className={`person${isMe ? ' is-me' : ''}`}>
-      <div className="who">{who}</div>
-
-      <div
-        className={`seal${animate ? ' just-logged' : ''}`}
-        data-state={summary.bird.state}
-        aria-hidden="true"
-      >
-        {summary.bird.emoji}
-      </div>
-      <div className="bird-label">
-        {summary.bird.name} · {summary.bird.label}
-      </div>
-
-      <div className="amount">
-        {formatMl(summary.consumedMl)}
-        <span className="target"> / {formatMl(summary.dailyTargetMl)}</span>
-      </div>
-      <div className="pct">{summary.percent}%</div>
-
-      <div className={`bar${summary.goalReached ? ' is-complete' : ''}`}>
-        <div className="fill" style={{ width: `${summary.percentDisplay}%` }} />
-        {!summary.goalReached && (
-          <div
-            className="expected"
-            style={{ left: `${Math.min(100, expectedPercent)}%` }}
-            title="Where you would be if you were on pace"
-          />
-        )}
-      </div>
-
-      <div className="bottle-line">
-        {summary.activeBottle
-          ? `${summary.activeBottle.name} · ${formatMl(summary.activeBottle.capacityMl)}`
-          : 'No bottle selected'}
-      </div>
-    </div>
-  );
+export function PersonCard({ summary, who, isMe }: { summary: UserSummary; who: string; isMe: boolean; animate?: boolean }) {
+  const expected = livePace(summary, useNow()).percent;
+  return <section className={`person${isMe ? ' is-me' : ''}`} aria-label={`${who}: ${formatMl(summary.consumedMl)} of ${formatMl(summary.dailyTargetMl)}, ${summary.percent}%`}>
+    <h2 className="who">{who}</h2>
+    <div className="person-numbers"><strong>{formatMl(summary.consumedMl)}</strong><span className="pct">{summary.percent}%</span></div>
+    <div className="target">of {formatMl(summary.dailyTargetMl)}</div>
+    <div className={`bar${summary.goalReached ? ' is-complete' : ''}`} aria-hidden="true"><div className="fill" style={{ width: `${summary.percentDisplay}%` }} />{!summary.goalReached && <div className="expected" style={{ left: `${Math.min(100, expected)}%` }} />}</div>
+    <p className="visually-hidden">Henna: {summary.bird.label}. On-pace by now: {expected}%. {summary.activeBottle ? `${summary.activeBottle.name} · ${formatMl(summary.activeBottle.capacityMl)}` : 'No bottle selected'}</p>
+  </section>;
 }

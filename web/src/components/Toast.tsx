@@ -10,7 +10,7 @@ export function Toast({
   isError?: boolean;
 }) {
   return (
-    <div className={`toast${isError ? ' is-error' : ''}`} role="status">
+    <div className={`toast${isError ? ' is-error' : ''}`} role={isError ? 'alert' : 'status'}>
       <span>{message}</span>
       {actionLabel && onAction && (
         <button type="button" onClick={onAction}>

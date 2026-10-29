@@ -8,7 +8,7 @@
  * except the cache name below.
  */
 
-const CACHE = 'nani-v1';
+const CACHE = 'nani-henna-v3';
 const SHELL = ['/', '/index.html', '/manifest.webmanifest', '/icons/icon-192.png'];
 
 self.addEventListener('install', (event) => {
@@ -71,7 +71,7 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener('push', (event) => {
-  let payload = { title: 'Nani 💧', body: 'Time for some water?' };
+  let payload = { title: 'With Henna', body: 'A little water break?' };
   try {
     if (event.data) payload = { ...payload, ...event.data.json() };
   } catch {

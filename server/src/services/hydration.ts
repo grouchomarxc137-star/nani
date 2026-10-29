@@ -3,6 +3,7 @@
 
 import type { Prisma } from '../generated/prisma/client.js';
 import { prisma } from '../prisma.js';
+import { companionMessage } from '../lib/companion.js';
 import { evaluateBird } from '../lib/bird.js';
 import {
   clampPercentForDisplay,
@@ -175,7 +176,7 @@ export function summarise(
       state: mood.state,
       face: mood.face,
       label: mood.label,
-      message: mood.message,
+      message: companionMessage(mood.state, user.key, mood.message),
     },
   };
 }

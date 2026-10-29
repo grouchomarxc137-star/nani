@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { formatMl } from '../lib/format.js';
 import { expectedRatioAt, livePace, useNow } from '../lib/pace.js';
 import type { UserSummary } from '../lib/types.js';
@@ -11,7 +12,7 @@ import type { UserSummary } from '../lib/types.js';
  *  - The vertical axis runs from 0 at the base to the daily target at the neck.
  *  - Millilitre ticks sit on the left; clock times on the right mark where the
  *    water line "should" be by that hour if the day is spread evenly across
- *    the awake window (the same pace the bird judges you against). Triggering a re depoloy
+ *    the awake window (the same pace used for Henna’s messages).
  */
 
 const CLOCK_MAX_LABELS = 6;
@@ -56,11 +57,25 @@ function clockMarks(wakeMinute: number, sleepMinute: number): ClockMark[] {
   return marks.filter((_, index) => index % stride === 0 || index === marks.length - 1);
 }
 
-export function BottleGauge({ summary }: { summary: UserSummary }) {
+export function BottleGauge({ summary, compact = false }: { summary: UserSummary; compact?: boolean }) {
+  const id = useId().replace(/:/g, '');
   // A ticking clock so the "now" line keeps sliding while the tab sits open,
   // rather than only jumping on the next /summary poll.
   const pace = livePace(summary, useNow());
   const target = Math.max(1, summary.dailyTargetMl);
+  if (compact) {
+    const waterY = 122 - 83 * Math.min(1, summary.percentDisplay / 100);
+    const nowY = 122 - 83 * pace.ratio;
+    return <svg className="bottle-compact" viewBox="0 0 100 138" role="img" aria-label={`${formatMl(summary.consumedMl)} of ${formatMl(target)} daily target. On-pace by now: ${pace.percent}%.`}>
+      <defs><clipPath id={`${id}-compact`}><rect x="18" y="35" width="38" height="88" rx="13" /></clipPath></defs>
+      <rect x="28" y="4" width="18" height="13" rx="3" fill="var(--henna)" /><rect x="25" y="17" width="24" height="20" rx="5" fill="var(--paper-deep)" />
+      <rect x="14" y="31" width="46" height="97" rx="17" fill="var(--acqua-wash)" stroke="var(--acqua-deep)" strokeWidth="1.6" />
+      <rect x="18" y={waterY} width="38" height={123 - waterY} fill="var(--acqua-deep)" clipPath={`url(#${id}-compact)`} />
+      <path d="M24 61h26m-26 21h26m-26 21h26" stroke="var(--paper)" strokeOpacity=".6" />
+      <path d={`M9 ${nowY}h56`} stroke="var(--henna)" strokeWidth="1.6" />
+      <text x="66" y="39" className="bottle-ml-label">{formatMl(target)}</text><text x="66" y="127" className="bottle-ml-label">0</text>
+    </svg>;
+  }
   const capacity = summary.activeBottle?.capacityMl ?? 1000;
 
   // Size grows with capacity, clamped so the extremes stay sensible.
@@ -110,11 +125,11 @@ export function BottleGauge({ summary }: { summary: UserSummary }) {
         aria-label={`${formatMl(summary.consumedMl)} of ${formatMl(target)} today, about ${summary.percent}% of the daily goal`}
       >
         <defs>
-          <linearGradient id="nani-water" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id={`${id}-water`} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#6cc4d6" />
             <stop offset="100%" stopColor="#1f6b80" />
           </linearGradient>
-          <clipPath id="nani-bottle-inner">
+          <clipPath id={`${id}-inner`}>
             <rect
               x={innerX}
               y={innerTop}
@@ -155,8 +170,8 @@ export function BottleGauge({ summary }: { summary: UserSummary }) {
         />
 
         {/* water */}
-        <g clipPath="url(#nani-bottle-inner)">
-          <rect x={innerX} y={fillY} width={innerW} height={fillH + 4} fill="url(#nani-water)" />
+        <g clipPath={`url(#${id}-inner)`}>
+          <rect x={innerX} y={fillY} width={innerW} height={fillH + 4} fill={`url(#${id}-water)`} />
           <rect x={innerX} y={fillY} width={innerW} height={3} className="bottle-water-surface" />
 
           {/* ml ticks, drawn inside so they read like moulded lines */}
@@ -225,17 +240,10 @@ export function BottleGauge({ summary }: { summary: UserSummary }) {
           );
         })}
 
-        {/* now marker label */}
-        <text
-          x={bodyX + bodyW + 11}
-          y={expectedY - 5}
-          className="bottle-now-label"
-        >
-          now {pace.clock}
-        </text>
       </svg>
 
       <div className="bottle-gauge-caption">
+        <span className="bottle-gauge-sub">On-pace at {pace.clock}: {pace.percent}% · dashed line</span>
         <strong>{formatMl(summary.consumedMl)}</strong>
         <span> / {formatMl(target)} · {summary.percent}%</span>
         {summary.activeBottle && (

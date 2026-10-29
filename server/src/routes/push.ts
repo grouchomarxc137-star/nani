@@ -49,7 +49,7 @@ pushRouter.post('/unsubscribe', async (req, res) => {
 /** Used during setup to prove notifications actually reach the phone. */
 pushRouter.post('/test', async (req, res) => {
   const report = await sendToUser(req.userId!, {
-    title: 'Nani test 💧',
+    title: 'A little hello from Henna',
     body: 'Push notifications are working.',
     tag: 'nani-test',
     url: '/',

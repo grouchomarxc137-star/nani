@@ -39,7 +39,7 @@ export async function getPushStatus(): Promise<PushStatus> {
       permission: 'unsupported',
       subscribed: false,
       reason: isIos()
-        ? 'On iPhone, add Nani to the Home Screen first, then open it from there.'
+        ? 'On iPhone, add With Henna to the Home Screen first, then open it from there.'
         : 'This browser does not support push notifications.',
     };
   }

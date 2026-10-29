@@ -99,12 +99,19 @@ export function buildReminderMessage(
   tone: ReminderTone,
   fact: FactLike | null,
   variantIndex = 0,
+  userKey?: string,
 ): ReminderMessage {
   const bodies = BODIES[tone];
   const body = bodies[variantIndex % bodies.length];
+  const personal = userKey === 'principessa';
+  const message = personal
+    ? tone === 'behind' || tone === 'well_behind'
+      ? 'You should drink more my love'
+      : 'You should drink my love, I only have one of you💛'
+    : body;
   return {
-    title: TITLES[tone],
-    body: fact ? `${body}\n${fact.text}` : body,
+    title: personal ? 'A little message from Henna💛' : TITLES[tone],
+    body: fact ? `${message}\n${fact.text}` : message,
   };
 }
 

@@ -31,7 +31,7 @@ function write(items: PendingLog[]): void {
   try {
     localStorage.setItem(QUEUE_KEY, JSON.stringify(items));
   } catch {
-    // Nothing sensible to do; the tap is lost rather than crashing the app.
+    throw new Error('Could not save this entry on your phone.');
   }
 }
 
@@ -78,3 +78,6 @@ export async function flushQueue(): Promise<number> {
   }
   return flushed;
 }
+
+/** Explicit discard; let the UI report storage failures honestly. */
+export function clearQueue(): void { write([]); }

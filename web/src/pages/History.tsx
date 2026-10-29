@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { BrandHeader } from '../components/BrandHeader.js';
+import { useAuth } from '../lib/auth.js';
 import { del, get, patch } from '../lib/api.js';
 import { LOCALE, formatDate, formatMl, formatTime, sourceLabel } from '../lib/format.js';
 import type { HistoryResponse, LogEntry } from '../lib/types.js';
@@ -9,7 +11,7 @@ import type { HistoryResponse, LogEntry } from '../lib/types.js';
  * women). 0 means a finished day with no logs at all (untracked); -1 marks a
  * day still in the future.
  */
-const SCORE_LABELS = ['untracked', 'parched', 'low', 'okay', 'good', 'well hydrated'] as const;
+const SCORE_LABELS = ['untracked', 'under 35% of guideline', '35–59% of guideline', '60–79% of guideline', '80–99% of guideline', 'guideline reached'] as const;
 
 function hydrationScore(totalMl: number, recommendedMl: number, entries: number): number {
   if (entries === 0) return 0;
@@ -29,6 +31,7 @@ const dateKey = (year: number, month: number, day: number) =>
   `${year}-${pad2(month + 1)}-${pad2(day)}`;
 
 export function History() {
+  const { account } = useAuth();
   const [today, setToday] = useState<LogEntry[]>([]);
   const [history, setHistory] = useState<HistoryResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -134,7 +137,7 @@ export function History() {
     }
   }
 
-  function EntryRow({ entry }: { entry: LogEntry }) {
+  function entryRow(entry: LogEntry) {
     const isEditing = editingId === entry.id;
     return (
       <div className="row" key={entry.id}>
@@ -145,10 +148,13 @@ export function History() {
 
         {isEditing ? (
           <div className="entry-edit">
+            <label className="visually-hidden" htmlFor={`entry-${entry.id}`}>Amount (ml)</label>
             <input
               type="number"
               inputMode="numeric"
               autoFocus
+              id={`entry-${entry.id}`}
+              min="1" max="5000"
               value={editValue}
               onChange={(event) => setEditValue(event.target.value)}
               aria-label="Amount in millilitres"
@@ -166,7 +172,7 @@ export function History() {
             </button>
           </div>
         ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <div className="entry-actions">
             <span className="amount">{formatMl(entry.amountMl)}</span>
             <button
               className="btn small"
@@ -250,20 +256,11 @@ export function History() {
 
   return (
     <>
-      <header className="header">
-        <h1>History</h1>
-        <span className="coins">{formatMl(todayTotal)} today</span>
-      </header>
+      <BrandHeader person={account ?? undefined} />
+      <header className="page-heading"><h1>Your days</h1><p>Every day is a fresh start.</p><span className="header-meta">{formatMl(todayTotal)} today</span></header>
 
-      {error && <div className="notice">{error}</div>}
+      {error && <div className="notice" role="alert">{error}<button type="button" className="btn ghost" onClick={() => void reload()}>Try again</button></div>}
 
-      <div className="card">
-        <h2>Today</h2>
-        {today.length === 0 && <div className="empty">Nothing logged yet today.</div>}
-        {today.map((entry) => (
-          <EntryRow entry={entry} key={entry.id} />
-        ))}
-      </div>
 
       <div className="card">
         <div className="mood-head">
@@ -288,10 +285,10 @@ export function History() {
 
         <p className="mood-caption">
           {monthStats.tracked === 0
-            ? 'No finished days this month yet.'
+            ? 'No tracked days finished this month yet.'
             : `${monthStats.well} of ${monthStats.tracked} finished ${
                 monthStats.tracked === 1 ? 'day' : 'days'
-              } near the ${formatMl(recommended)} guideline`}
+              } at 80% or more of the ${formatMl(recommended)} guideline`}
         </p>
 
         <div className="mood-cal">
@@ -339,16 +336,16 @@ export function History() {
         </div>
 
         <div className="mood-legend" aria-hidden="true">
-          <span>Parched</span>
+          <span>Less water</span>
           {[1, 2, 3, 4, 5].map((score) => (
             <span key={score} className="mood-swatch" data-score={score} />
           ))}
-          <span>Hydrated</span>
+          <span>Guideline reached</span>
         </div>
 
         <p className="mood-sub">
           Shaded against the general {formatMl(recommended)}/day adult fluid guideline. A
-          full block means the day reached it; today fills in as you drink.
+          full block means the day reached it; today fills in as you drink. This is separate from your own daily target.
         </p>
 
         {expanded && (
@@ -371,13 +368,17 @@ export function History() {
               {expandedEntries.length === 0 && (
                 <div className="empty">Nothing logged this day.</div>
               )}
-              {expandedEntries.map((entry) => (
-                <EntryRow entry={entry} key={entry.id} />
-              ))}
+              {expandedEntries.map(entryRow)}
             </div>
           </div>
         )}
       </div>
+      <div className="card">
+        <h2>Today</h2>
+        {today.length === 0 && <div className="empty">No sips logged yet today. Begin whenever you’re ready.</div>}
+        {today.map(entryRow)}
+      </div>
+
     </>
   );
 }

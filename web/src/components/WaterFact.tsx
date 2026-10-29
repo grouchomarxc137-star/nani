@@ -65,7 +65,7 @@ export function WaterFact() {
 
   return (
     <div className="card fact-card">
-      <h2>Did you know</h2>
+      <h2>Henna’s little water notes</h2>
       <p className={`fact-text${shown ? ' is-shown' : ''}`}>
         <span aria-hidden="true" className="fact-mark">
           {fact.kind === 'benefit' ? '💧' : '🥵'}

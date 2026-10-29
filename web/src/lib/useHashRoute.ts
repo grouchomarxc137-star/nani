@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-export const ROUTES = ['home', 'history', 'store', 'settings'] as const;
+export const ROUTES = ['home', 'history', 'settings'] as const;
 export type Route = (typeof ROUTES)[number];
 
 function currentRoute(): Route {
@@ -9,7 +9,7 @@ function currentRoute(): Route {
 }
 
 /**
- * A hash router in a dozen lines. Four tabs do not justify a routing library,
+ * A hash router in a dozen lines. Three tabs do not justify a routing library,
  * and using the hash keeps the iPhone back gesture working.
  */
 export function useHashRoute(): [Route, (route: Route) => void] {

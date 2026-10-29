@@ -1,7 +1,7 @@
 {
-  "name": "Nani",
-  "short_name": "Nani",
-  "description": "A shared hydration companion",
+  "name": "With Henna",
+  "short_name": "With Henna",
+  "description": "A little care, one sip at a time.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

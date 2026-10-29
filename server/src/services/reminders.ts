@@ -67,7 +67,7 @@ export async function runReminderSweep(now = new Date()): Promise<ReminderRunEnt
 
     // Hydration facts deliberately live on the home screen now, not in
     // notifications — a reminder is just a gentle nudge.
-    const message = buildReminderMessage(decision.tone, null);
+    const message = buildReminderMessage(decision.tone, null, 0, user.key);
     const report = await sendToUser(user.id, {
       ...message,
       tag: 'nani-reminder',
